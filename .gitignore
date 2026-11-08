@@ -1,0 +1,18 @@
+# Build outputs and diagnostics
+*.exe
+*.exe.config
+*.pdb
+*.log
+/bin/
+/obj/
+/dist/
+/preview*.png
+/*.txt
+
+# Local profiles, backups and archives
+/配置存档/
+/.spacekat-*.tmp
+/*.zip
+/*.tar.gz
+/*.deb
+/linux/
