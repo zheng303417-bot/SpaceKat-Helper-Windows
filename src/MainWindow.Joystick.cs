@@ -199,6 +199,8 @@ namespace SpaceKatMonitor
 
         private void StartJoystick()
         {
+            if (!TryReleaseGlobalNavigation())
+            { _stickMessage = "导航按键尚未释放。请点左侧“重试停止输出”。"; return; }
             if (_currentPage != "joystick" || _mouseOutput == null || (!_demo && (_selected == null || _input == null)))
             { _stickMessage = "请先连接六轴设备，或进入演示预览。"; return; }
             StopMouseControl("已切换为摇杆模拟，鼠标模拟已关闭。");

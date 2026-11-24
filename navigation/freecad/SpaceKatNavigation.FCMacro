@@ -1,0 +1,120 @@
+"""Toggle SpaceKat navigation in the active FreeCAD 3D view on Windows."""
+import importlib.util
+import math
+import os
+from pathlib import Path
+
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide import QtCore, QtWidgets
+
+
+_SESSION = "_spacekat_navigation_session"
+_FREECAD = 3
+
+
+def _limit_zoom(value, factor):
+    # Accept the current distance even when the model is outside our usual range.
+    return max(min(1e-6, value), min(max(1e9, value), value * factor))
+
+
+def _move_view(view, axes, elapsed, bridge):
+    camera = view.getCameraNode()
+    if camera is None:
+        return
+    kind = view.getCameraType()
+    if kind not in ("Orthographic", "Perspective"):
+        return
+
+    distance = float(camera.focalDistance.getValue())
+    height = float(camera.height.getValue()) if kind == "Orthographic" else distance
+    if not math.isfinite(distance) or not math.isfinite(height) or min(distance, height) <= 0:
+        return
+
+    pan_x, pan_y, zoom, orbit = bridge.motion(axes, elapsed)
+    orientation = App.Rotation(*camera.orientation.getValue().getValue())
+    eye = App.Vector(*camera.position.getValue().getValue())
+    pivot = eye - orientation.multVec(App.Vector(0, 0, distance))
+    pivot += orientation.multVec(App.Vector(pan_x * height, pan_y * height, 0))
+
+    orbit_axis = App.Vector(*orbit)
+    angle = orbit_axis.Length
+    if angle > 0:
+        delta = App.Rotation(orbit_axis * (1 / angle), math.degrees(angle))
+        orientation = orientation.multiply(delta)
+
+    next_distance = _limit_zoom(distance, zoom) if kind == "Perspective" else distance
+    next_eye = pivot + orientation.multVec(App.Vector(0, 0, next_distance))
+
+    if kind == "Orthographic" and zoom != 1:
+        camera.height.setValue(_limit_zoom(height, zoom))
+    if next_distance != distance:
+        camera.focalDistance.setValue(next_distance)
+    if angle > 0:
+        camera.orientation.setValue(*orientation.Q)
+    if angle > 0 or pan_x or pan_y or next_distance != distance:
+        camera.position.setValue(next_eye.x, next_eye.y, next_eye.z)
+    view.redraw()
+
+
+class _NavigationSession:
+    def __init__(self, window, bridge):
+        self.window = window
+        self.bridge = bridge
+        self.clock = bridge.StepClock()
+        self.timer = QtCore.QTimer(window)
+        self.timer.setInterval(16)
+        self.timer.timeout.connect(self.tick)
+
+    def stop(self):
+        self.timer.stop()
+        self.timer.deleteLater()
+        if getattr(Gui, _SESSION, None) is self:
+            delattr(Gui, _SESSION)
+
+    def tick(self):
+        try:
+            axes = self.bridge.read(_FREECAD)
+            if axes is None or not any(axes) or QtWidgets.QApplication.activePopupWidget():
+                self.clock.step(None)
+                return
+            document = Gui.activeDocument()
+            if document is None or document.getInEdit():
+                self.clock.step(None)
+                return
+            view = document.activeView()
+            if not hasattr(view, "getCameraNode"):
+                self.clock.step(None)
+                return
+            elapsed = self.clock.step(axes)
+            if elapsed > 0:
+                _move_view(view, axes, elapsed, self.bridge)
+        except Exception as error:
+            self.stop()
+            App.Console.PrintError("SpaceKat 导航已停止：{}\n".format(error))
+            self.window.statusBar().showMessage("SpaceKat 导航发生错误。详情请看报告视图。", 5000)
+
+
+def _toggle_navigation():
+    window = Gui.getMainWindow()
+    existing = getattr(Gui, _SESSION, None)
+    if existing is not None:
+        existing.stop()
+        window.statusBar().showMessage("SpaceKat 导航已停止。", 5000)
+        return
+    if os.name != "nt":
+        raise RuntimeError("SpaceKat FreeCAD 适配器仅支持 Windows。")
+    # Use the executed macro path even if FreeCAD's __main__.__file__ was set by another macro.
+    path = Path(_toggle_navigation.__code__.co_filename).resolve().with_name("spacekat_bridge.py")
+    if not path.is_file():
+        raise RuntimeError("请解压完整适配器 ZIP，并保留宏和 spacekat_bridge.py 在同一文件夹。")
+    spec = importlib.util.spec_from_file_location("_spacekat_freecad_bridge", path)
+    bridge = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(bridge)
+    session = _NavigationSession(window, bridge)
+    setattr(Gui, _SESSION, session)
+    session.timer.start()
+    window.statusBar().showMessage("SpaceKat 导航已就绪。请在小助手开启 FreeCAD 导航。", 5000)
+
+
+_toggle_navigation()

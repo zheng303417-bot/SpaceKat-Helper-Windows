@@ -5,7 +5,12 @@
 *.log
 /bin/
 /obj/
+/s80/bin/
+/s80/obj/
 /dist/
+/native/fusion-s80/
+/native/fusion-s80-v2/
+/适配器/
 /preview*.png
 /*.txt
 
@@ -16,3 +21,4 @@
 /*.tar.gz
 /*.deb
 /linux/
+__pycache__/

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Authors>用户</Authors>
+    <Company>用户</Company>
+    <Product>SpaceKat 小助手</Product>
+    <Description>Fusion 原生六轴导航组件</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <AssemblyMetadata Include="Author" Value="用户" />
+    <Compile Include="..\src\FusionNativeBridge.cs" Link="FusionNativeBridge.cs" />
+  </ItemGroup>
+</Project>

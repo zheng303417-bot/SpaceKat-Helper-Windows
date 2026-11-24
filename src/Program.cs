@@ -8,13 +8,16 @@ using System.Windows.Threading;
 
 [assembly: System.Reflection.AssemblyTitle(SpaceKatMonitor.Program.ProductName)]
 [assembly: System.Reflection.AssemblyProduct(SpaceKatMonitor.Program.ProductName)]
-[assembly: System.Reflection.AssemblyFileVersion("1.16.0.0")]
+[assembly: System.Reflection.AssemblyCompany("用户")]
+[assembly: System.Reflection.AssemblyMetadata("Author", "用户")]
+[assembly: System.Reflection.AssemblyFileVersion(SpaceKatMonitor.Program.Version + ".0.0")]
 
 namespace SpaceKatMonitor
 {
     internal static class Program
     {
         internal const string ProductName = "SpaceKat 小助手";
+        internal const string Version = "1.31";
 
         [STAThread]
         private static int Main(string[] args)
@@ -29,7 +32,7 @@ namespace SpaceKatMonitor
                         + MouseMotionTests.Run() + MouseOutputTests.Run() + MouseControlSessionTests.Run() + MouseButtonTests.Run() + CubeMotionTests.Run()
                         + RightStickTests.Run() + VirtualGamepadOutputTests.Run() + JoystickSettingsTests.Run()
                         + MouseWheelTests.Run() + MouseWheelSettingsTests.Run() + DominantAxisFilterTests.Run()
-                        + BatteryTests.Run() + GamepadButtonTests.Run());
+                        + BatteryTests.Run() + GamepadButtonTests.Run() + NavigationBridgeTests.Run());
                     return 0;
                 }
                 if (Array.IndexOf(args, "--gamepad-probe") >= 0)
@@ -73,8 +76,7 @@ namespace SpaceKatMonitor
                 Application app = new Application();
                 app.ShutdownMode = ShutdownMode.OnMainWindowClose;
                 bool demo = Array.IndexOf(args, "--demo") >= 0;
-                MainWindow window = new MainWindow(demo);
-                window.ShowPage(Option(args, "--page") ?? "test");
+                MainWindow window = new MainWindow(demo, Option(args, "--page"));
                 string previewSize = Option(args, "--preview-size");
                 if (previewSize != null)
                 {

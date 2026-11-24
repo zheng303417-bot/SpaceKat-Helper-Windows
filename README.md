@@ -7,13 +7,14 @@ SpaceKat Mini II 和 Mini II Lite 的 Windows 上位机。支持 USB 和蓝牙�
 - **设备测试**。实时显示 X、Y、Z、Rx、Ry、Rz 和四键状态，通过三维立方体观察平移与旋转。蓝牙设备上报电量时，顶部会显示百分比。
 - **鼠标映射**。X/Y 移动光标，Z 控制滚轮，上滚和下滚速度可独立设置。四个物理键可映射为单击、双击、侧键、滚轮或左键锁定。
 - **摇杆模拟**。任选两轴控制右摇杆，Z 控制 LT/RT，四个物理键可分别映射为 A、B、X、Y。支持本页预览及虚拟手柄输出。
+- **3D 导航**。Fusion 360 通过相机接口实现六轴导航与四键视图映射，支持在已打开的 Fusion 中接入。SOLIDWORKS 支持模型视图直连，Blender、FreeCAD 和 Rhino 8 可启用专用适配器。全局适配使用目标软件的默认导航手势。平移与缩放、旋转最低可调到 0.01×。
 - **设置**。可管理当前 Windows 账号的自启动、主题色和配置。导入配置前会备份当前设置。
 
 ## 使用便携包
 
-在 [Releases](https://github.com/zheng303417-bot/SpaceKat-Helper-Windows/releases) 下载 Windows 便携包。解压后运行「启动上位机.cmd」或同目录的 `SpaceKat小助手-1.16.exe`。首次运行会载入内置配置。无需设备时，可以运行「演示模式.cmd」查看界面。
+解压 Windows 便携包后运行「启动上位机.cmd」或同目录的 SpaceKat 小助手。首次运行会载入内置配置。无需设备时，可以运行「演示模式.cmd」查看界面。公开版本见 [Releases](https://github.com/zheng303417-bot/SpaceKat-Helper-Windows/releases)。
 
-适用 Windows 10/11 和 .NET Framework 4.8。系统虚拟手柄输出需要电脑上已有可用的 ViGEmBus。左侧「停止并释放」与 `Ctrl+Alt+F8` 可停止当前模拟。
+适用 Windows 10/11 和 .NET Framework 4.8。Fusion 首次使用时，在「实用程序 → 附加模块」中添加并运行便携包内的 `navigation/fusion/SpaceKatFusion` 文件夹，然后在小助手选「Fusion 360 · 相机直连」并开启导航。Fusion 可以保持打开，导航无需 3DxWare。系统虚拟手柄输出需要电脑上已有可用的 ViGEmBus。左侧「停止并释放」与 `Ctrl+Alt+F8` 可停止当前模拟。
 
 ## 从源码构建
 
@@ -23,6 +24,6 @@ SpaceKat Mini II 和 Mini II Lite 的 Windows 上位机。支持 USB 和蓝牙�
 powershell -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -Test
 ```
 
-程序生成在仓库根目录。构建脚本使用 Windows 自带的 .NET Framework 编译器，并嵌入图标和 `src/Defaults` 内的默认配置。
+程序生成在仓库根目录，使用 Windows 自带的 .NET Framework 编译器构建。Fusion、Blender、FreeCAD 和 Rhino 适配器可以从「3D 导航」页导出。需要便携 ZIP 时，可加 `-Package`，压缩包生成在 `dist`。
 
 完整操作和排查步骤见[使用说明](使用说明.md)。虚拟手柄客户端的版本、校验值与许可见[依赖说明](native/SOURCES.md)。硬件资料见[SpaceKat Mini II 项目](https://github.com/Cityforest2000/SpaceKat-V3-Mini2)。

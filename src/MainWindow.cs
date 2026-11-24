@@ -50,9 +50,9 @@ namespace SpaceKatMonitor
             public DateTime FlashUntil;
         }
 
-        private static readonly Brush Ink = ColorBrush("#193138");
-        private static readonly Brush Muted = ColorBrush("#71868C");
-        private static readonly Brush Line = ColorBrush("#DFE8EA");
+        private static readonly Brush Ink = ColorBrush("#15233B");
+        private static readonly Brush Muted = ColorBrush("#505F76");
+        private static readonly Brush Line = ColorBrush("#DCE3EE");
         private static readonly Brush Orange = ColorBrush("#B5751E");
         private static readonly Brush QuietDot = ColorBrush("#A9B8BD");
         private static readonly Brush ErrorBrush = ColorBrush("#B64D47");
@@ -144,9 +144,9 @@ namespace SpaceKatMonitor
         private DateTime _nextRefresh;
         private DateTime _copyFeedbackUntil;
 
-        public MainWindow(bool demo)
+        public MainWindow(bool demo, string initialPage = null)
         {
-            Title = Program.ProductName + " 1.16";
+            Title = Program.ProductName + " " + Program.Version;
             using (Stream icon = typeof(MainWindow).Assembly.GetManifestResourceStream("SpaceKat.Joystick.ico"))
                 Icon = BitmapFrame.Create(icon, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
             Width = 1180;
@@ -189,6 +189,7 @@ namespace SpaceKatMonitor
             _mappingNav.Click += delegate { ShowPage("mapping"); };
             _globalStop.Click += delegate
             {
+                StopNavigation("已停止 3D 导航。");
                 StopMouseControl("已停止鼠标模拟并尝试释放按键。");
                 StopJoystick("已停止摇杆模拟，右摇杆已回中。");
                 if (_mouseOutput == null || !_mouseOutput.HasPendingRelease)
@@ -233,8 +234,14 @@ namespace SpaceKatMonitor
             InitializeMouseWheel();
             PreviewKeyDown += delegate(object sender, KeyEventArgs args)
             {
-                if ((_mouseEnabled || _joystick.Enabled) && args.Key == Key.Escape)
+                if (args.Key == Key.Escape && _learningCard != null)
                 {
+                    CancelLearning("已取消学习。");
+                    args.Handled = true;
+                }
+                if ((_mouseEnabled || _joystick.Enabled || NavigationEnabled || _navigationStartupPending) && args.Key == Key.Escape)
+                {
+                    StopNavigation("已按 Esc 停止 3D 导航。");
                     StopMouseControl("已按 Esc 停止鼠标模拟。");
                     StopJoystick("已按 Esc 停止摇杆模拟。");
                     args.Handled = true;
@@ -266,6 +273,7 @@ namespace SpaceKatMonitor
             };
             _copyButton.Click += CopySnapshot;
             InitializeJoystick();
+            InitializeNavigation();
             InitializeSettings();
             SourceInitialized += InitializeInput;
             Closed += OnClosed;
@@ -276,9 +284,10 @@ namespace SpaceKatMonitor
             _rateStart = DateTime.UtcNow;
             _nextRefresh = DateTime.UtcNow;
             SetDemo(demo);
-            Render(DateTime.UtcNow);
+            initialPage = initialPage ?? "navigation";
+            _navigationStartupPending = !demo && String.Equals(initialPage, "navigation", StringComparison.OrdinalIgnoreCase);
+            ShowPage(initialPage);
             _timer.Start();
-            ShowPage("test");
         }
 
         public void ShowPage(string page)
@@ -286,22 +295,30 @@ namespace SpaceKatMonitor
             bool joystick = String.Equals(page, "joystick", StringComparison.OrdinalIgnoreCase);
             bool mapping = String.Equals(page, "mapping", StringComparison.OrdinalIgnoreCase);
             bool settings = String.Equals(page, "settings", StringComparison.OrdinalIgnoreCase);
+            bool navigation = String.Equals(page, "navigation", StringComparison.OrdinalIgnoreCase);
             if (!mapping && _currentPage == "mapping")
             {
                 StopMouseControl("已切换页面，鼠标模拟已停止。");
                 CancelLearning(null);
             }
             if (!joystick && _currentPage == "joystick") StopJoystick("已切换页面，右摇杆已回中。");
-            if ((mapping || joystick || settings) && _currentPage == "test")
+            if (!navigation && _currentPage == "navigation")
+            {
+                StopNavigation("已切换页面，3D 导航已停止。");
+                CancelLearning(null);
+            }
+            if ((mapping || joystick || settings || navigation) && _currentPage == "test")
                 _cubeView.SetInput(null, false, _mouseClock.Elapsed.TotalSeconds);
-            _currentPage = joystick ? "joystick" : mapping ? "mapping" : settings ? "settings" : "test";
+            _currentPage = joystick ? "joystick" : mapping ? "mapping" : settings ? "settings" : navigation ? "navigation" : "test";
             _testPage.Visibility = _currentPage == "test" ? Visibility.Visible : Visibility.Collapsed;
             _mappingPage.Visibility = mapping ? Visibility.Visible : Visibility.Collapsed;
             _joystickPage.Visibility = joystick ? Visibility.Visible : Visibility.Collapsed;
+            _navigationPage.Visibility = navigation ? Visibility.Visible : Visibility.Collapsed;
             _settingsPage.Visibility = settings ? Visibility.Visible : Visibility.Collapsed;
             RenderNavigation();
-            _pageTitle.Text = joystick ? "摇杆模拟" : mapping ? "鼠标映射" : settings ? "设置" : "设备测试";
+            _pageTitle.Text = joystick ? "摇杆模拟" : mapping ? "鼠标映射" : settings ? "设置" : navigation ? "3D 导航" : "设备测试";
             _pageDescription.Text = settings ? "管理自启动、主题色和配置文件"
+                : navigation ? "用 SpaceKat 控制 3D 软件的视图"
                 : joystick ? "两轴转向，Z 轴缩放；放大与缩小独立调节"
                 : mapping ? "X / Y 控制光标，Z 控制滚轮，四键执行鼠标动作"
                 : "用立方体观察六轴操控，实时检查原始数值与四个按键";
@@ -314,13 +331,15 @@ namespace SpaceKatMonitor
             SetNavStyle(_testNav, _currentPage == "test");
             SetNavStyle(_mappingNav, _currentPage == "mapping");
             SetNavStyle(_joystickNav, _currentPage == "joystick");
+            SetNavStyle(_navigationNav, _currentPage == "navigation");
             SetNavStyle(_settingsNav, _currentPage == "settings");
         }
 
         private void SetNavStyle(Button button, bool active)
         {
-            button.Background = active ? Accent : Brushes.Transparent;
-            button.Foreground = active ? Brushes.White : ColorBrush("#A8C1C7");
+            button.SetResourceReference(BackgroundProperty, active ? "AccentTintBrush" : "RailIdleBrush");
+            button.SetResourceReference(ForegroundProperty, active ? "InkBrush" : "RailTextBrush");
+            button.SetResourceReference(BorderBrushProperty, active ? "AccentEdgeBrush" : "RailIdleBrush");
         }
 
         private T Find<T>(string name) where T : FrameworkElement
@@ -428,6 +447,7 @@ namespace SpaceKatMonitor
                     mappedCard.LogicalBit = mapping.SelectedIndex;
                     mappedCard.PressCount = 0;
                     mappedCard.FlashUntil = DateTime.MinValue;
+                    SyncNavigationButtonMapping(mappedCard);
                     SaveMappings();
                     Render(DateTime.UtcNow);
                 };
@@ -498,6 +518,7 @@ namespace SpaceKatMonitor
             }
             catch (Exception ex)
             {
+                StopNavigation("监听异常，3D 导航已停止。");
                 StopMouseControl("监听异常，鼠标模拟已停止。");
                 StopJoystick("监听异常，摇杆模拟已停止。");
                 _error = "无法开始监听：" + ex.Message;
@@ -509,11 +530,13 @@ namespace SpaceKatMonitor
             if (msg == 0x00FE && wParam.ToInt64() == 2 && _selected != null && _selected.Handle == lParam)
             {
                 _battery.Reset(null, _demo);
+                StopNavigation("设备已断开，3D 导航已停止。");
                 StopMouseControl("设备已断开，鼠标模拟已停止。");
                 StopJoystick("设备已断开，右摇杆已回中。");
             }
             if (_mouseOutput != null && _mouseOutput.IsStopMessage(msg, wParam))
             {
+                StopNavigation("已按 Ctrl+Alt+F8 停止 3D 导航。");
                 StopMouseControl("已按 Ctrl+Alt+F8 停止鼠标模拟。");
                 StopJoystick("已按 Ctrl+Alt+F8 停止摇杆模拟。");
                 handled = true;
@@ -524,6 +547,7 @@ namespace SpaceKatMonitor
                 try { _input.ProcessMessage(msg, wParam, lParam); }
                 catch (Exception ex)
                 {
+                    StopNavigation("读取设备异常，3D 导航已停止。");
                     StopMouseControl("读取设备异常，鼠标模拟已停止。");
                     StopJoystick("读取设备异常，摇杆模拟已停止。");
                     _error = "读取设备失败：" + ex.Message;
@@ -599,9 +623,11 @@ namespace SpaceKatMonitor
                     ClearReadings();
                 if (_input != null)
                     _error = null;
+                if (_navigationStartupPending) StartNavigation();
             }
             catch (Exception ex)
             {
+                StopNavigation("读取设备列表异常，3D 导航已停止。");
                 StopMouseControl("读取设备列表异常，鼠标模拟已停止。");
                 StopJoystick("读取设备列表异常，摇杆模拟已停止。");
                 _error = "查找设备失败：" + ex.Message;
@@ -621,6 +647,7 @@ namespace SpaceKatMonitor
             _noDeviceText.Visibility = _selected == null ? Visibility.Visible : Visibility.Collapsed;
             if (!_demo)
                 ClearReadings();
+            if (_navigationStartupPending) StartNavigation();
         }
 
         private void OnReportReceived(HidDevice device, byte[] report)
@@ -661,6 +688,11 @@ namespace SpaceKatMonitor
                 if (!_demo)
                 {
                     _lastAxisSeconds = _mouseClock.Elapsed.TotalSeconds;
+                    if (NavigationEnabled)
+                    {
+                        _navigationSample = NavigationBridge.GetTickCount64();
+                        if (_activeNavigation == NavigationTarget.SolidWorks) PublishNavigation();
+                    }
                     if (_mouseEnabled)
                     {
                         _mouseSession.ObserveXY(_lastAxisSeconds);
@@ -671,8 +703,10 @@ namespace SpaceKatMonitor
             if (decoded.Buttons.HasValue)
             {
                 _buttonPacketCount++;
+                uint previousRaw = _buttonState.RawMask;
                 bool changed = !_buttonState.Known || _buttonState.RawMask != decoded.Buttons.Value;
                 _buttonState.Apply(decoded.Buttons.Value);
+                PublishFusionButtonPresses(decoded.Buttons.Value & ~previousRaw);
                 _lastButtonRaw = _lastRaw;
                 if (changed)
                     RecordButtonEvent(now, _lastRaw, decoded.Buttons.Value);
@@ -704,6 +738,7 @@ namespace SpaceKatMonitor
         private void ClearReadings()
         {
             _battery.Reset(_selected == null ? null : _selected.Path, _demo);
+            StopNavigation("设备或模式已切换，3D 导航已停止。", keepStartupRequest: true);
             StopMouseControl("设备或模式已切换，鼠标模拟已关闭。");
             StopJoystick("设备或模式已切换，右摇杆已回中。");
             _lastAxisSeconds = Double.NegativeInfinity;
@@ -736,6 +771,7 @@ namespace SpaceKatMonitor
         private void SetDemo(bool enabled)
         {
             _demo = enabled;
+            _navigationStartupPending = false;
             ClearReadings();
             _demoStart = DateTime.UtcNow;
             _demoButton.Content = enabled ? "退出演示" : "演示模式";
@@ -774,6 +810,7 @@ namespace SpaceKatMonitor
         private void Tick(object sender, EventArgs args)
         {
             if (_closing) return;
+            RetryNavigationRelease();
             DateTime now = DateTime.UtcNow;
             if (now >= _nextRefresh)
                 RefreshDevices();
@@ -783,7 +820,7 @@ namespace SpaceKatMonitor
             if (_currentPage == "test")
                 _cubeView.Advance(_mouseClock.Elapsed.TotalSeconds);
             if (_learningCard != null && (now - _learnStarted).TotalSeconds > 40)
-                CancelLearning("学习超时：未收到独立的按下和释放，请检查下面的按键事件。");
+                CancelLearning("学习超时。请松开所有键，再短按并释放一个物理键。");
             double elapsed = (now - _rateStart).TotalSeconds;
             if (elapsed >= 1)
             {
@@ -808,14 +845,19 @@ namespace SpaceKatMonitor
             _mouseStatus.Text = _demo ? "演示模式仅展示数据，不发送鼠标动作。" : _mouseMessage;
             _mouseStatus.Foreground = _mouseEnabled ? Accent : Muted;
             bool pendingRelease = _mouseOutput != null && _mouseOutput.HasPendingRelease;
-            _globalStop.IsEnabled = _mouseEnabled || pendingRelease || _joystick.Enabled || _gamepadOutput.HasPendingStop;
-            _globalStop.Content = _gamepadOutput.HasPendingStop ? "重试停止输出" : !_mouseEnabled && pendingRelease ? "重试释放按键" : "停止并释放";
+            _globalStop.IsEnabled = _mouseEnabled || pendingRelease || _joystick.Enabled || NavigationEnabled ||
+                _navigationStartupPending || NavigationReleasePending || _gamepadOutput.HasPendingStop;
+            _globalStop.Content = _gamepadOutput.HasPendingStop || NavigationReleasePending ? "重试停止输出" : !_mouseEnabled && pendingRelease ? "重试释放按键" : "停止并释放";
             _globalMouseStatus.Text = _gamepadOutput.HasPendingStop ? "虚拟手柄待停止" : _joystick.Enabled ? (_gamepadOutput.IsConnected ? "虚拟手柄已开启" : "摇杆预览已开启") : pendingRelease && !_mouseEnabled ? "鼠标按键待释放"
+                : NavigationReleasePending ? "导航按键待释放"
                 : _mouseButtons.IsLeftHeld ? "左键已锁定"
+                : NavigationEnabled ? "3D 导航已开启"
+                : _navigationStartupPending ? "3D 导航等待设备"
                 : _mouseEnabled ? "鼠标控制已开启" : "所有模拟已关闭";
-            _globalMouseStatus.Foreground = _gamepadOutput.HasPendingStop || _mouseButtons.IsLeftHeld || (pendingRelease && !_mouseEnabled)
-                ? ColorBrush("#FFC882") : _mouseEnabled || _joystick.Enabled ? ColorBrush("#71DBCB") : ColorBrush("#A8C1C7");
+            _globalMouseStatus.Foreground = _gamepadOutput.HasPendingStop || NavigationReleasePending || _mouseButtons.IsLeftHeld || (pendingRelease && !_mouseEnabled)
+                ? ColorBrush("#875212") : _mouseEnabled || _joystick.Enabled || NavigationEnabled ? ColorBrush("#08706A") : Muted;
             RenderJoystick();
+            if (_currentPage == "navigation") RenderAppNavigation();
             RenderMouseWheel();
             _releaseLeftButton.IsEnabled = _mouseButtons.IsLeftHeld || pendingRelease;
             _releaseLeftButton.Content = !_mouseEnabled && pendingRelease ? "重试释放" : "释放左键";
@@ -965,6 +1007,12 @@ namespace SpaceKatMonitor
 
         private void StartMouseControl()
         {
+            if (!TryReleaseGlobalNavigation())
+            {
+                _mouseMessage = "导航按键尚未释放。请点左侧“重试停止输出”。";
+                Render(DateTime.UtcNow);
+                return;
+            }
             if (_gamepadOutput.HasPendingStop)
             {
                 StopJoystick("已请求停止虚拟手柄输出。");
@@ -1294,6 +1342,9 @@ namespace SpaceKatMonitor
             text.AppendLine("ButtonsKnown=" + _buttonsKnown.ToString());
             text.AppendLine("MouseEnabled=" + _mouseEnabled);
             text.AppendLine("CurrentPage=" + _currentPage);
+            text.AppendLine("NavigationTarget=" + SelectedNavigationTarget + "; Active=" + _activeNavigation
+                + "; Linear=" + _navigationLinear.Value.ToString("0.00", CultureInfo.InvariantCulture)
+                + "; Angular=" + _navigationAngular.Value.ToString("0.00", CultureInfo.InvariantCulture));
             text.AppendLine("Theme=" + _theme.Id);
             text.AppendLine("RightStickEnabled=" + _joystick.Enabled);
             text.AppendLine("StickDominantAxis=" + _joystick.DominantAxisEnabled + " (" + _joystick.DominantGroup + ")");
@@ -1363,6 +1414,7 @@ namespace SpaceKatMonitor
         private void OnClosed(object sender, EventArgs args)
         {
             _closing = true;
+            CloseNavigation();
             StopMouseControl("窗口已关闭。");
             StopJoystick("窗口已关闭，右摇杆已回中。");
             SaveJoystickSettings();

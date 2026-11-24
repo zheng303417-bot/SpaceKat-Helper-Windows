@@ -1,0 +1,10 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "addin",
+  "id": "e3b99cf4-24de-4d46-8716-8a75b0d3dce0",
+  "author": "用户",
+  "description": {"": "SpaceKat 原生相机导航"},
+  "version": "1.0.0",
+  "runOnStartup": false,
+  "supportedOS": "windows"
+}

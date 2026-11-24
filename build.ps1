@@ -1,7 +1,7 @@
-﻿param([switch]$Test, [switch]$CleanOldVersions)
+﻿param([switch]$Test, [switch]$CleanOldVersions, [switch]$Package)
 $ErrorActionPreference = 'Stop'
 $projectPath = $PSScriptRoot
-$currentVersion = '1.16'
+$currentVersion = '1.31'
 $outputName = 'SpaceKat小助手-' + $currentVersion + '.exe'
 if ($CleanOldVersions -and !$Test) { throw '清理旧版前必须通过检查，请同时指定 -Test。' }
 $frameworkPath = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
@@ -26,6 +26,12 @@ $iconPath = Join-Path $projectPath 'src\Assets\joystick.ico'
 $compilerArgs += '/win32icon:' + $iconPath
 $compilerArgs += '/resource:' + $iconPath + ',SpaceKat.Joystick.ico'
 $compilerArgs += '/resource:' + (Join-Path $projectPath 'src\MainWindow.xaml') + ',MainWindow.xaml'
+$navigationResources = @('spacekat_bridge.py', 'blender\__init__.py',
+    'freecad\SpaceKatNavigation.FCMacro', 'rhino\SpaceKatNavigation.py',
+    'fusion\SpaceKatFusion\SpaceKatFusion.py', 'fusion\SpaceKatFusion\SpaceKatFusion.manifest', 'fusion\SpaceKatFusion\camera.py')
+foreach ($relativeFile in $navigationResources) {
+    $compilerArgs += '/resource:' + (Join-Path $projectPath ('navigation\' + $relativeFile)) + ',Navigation.' + $relativeFile.Replace('\', '.')
+}
 foreach ($fileName in @('stick-settings.txt', 'wheel-settings.txt', 'mouse-settings.txt', 'button-mapping.txt', 'button-actions.txt', 'gamepad-button-actions.txt', 'theme-settings.txt')) {
     $compilerArgs += '/resource:' + (Join-Path $projectPath ('src\Defaults\' + $fileName)) + ',SpaceKatMonitor.Defaults.' + $fileName
 }
@@ -38,10 +44,34 @@ Copy-Item -LiteralPath (Join-Path $projectPath 'src\app.config') -Destination (J
 Write-Host ('已生成：' + (Join-Path $projectPath $outputName))
 if ($Test) {
     $testOutput = Join-Path $projectPath 'test-results.txt'
-    $testProcess = Start-Process -FilePath (Join-Path $projectPath $outputName) -ArgumentList '--self-test' -WindowStyle Hidden -PassThru -Wait
+    $testProcess = Start-Process -FilePath (Join-Path $projectPath $outputName) -ArgumentList @('--self-test', '--output', ('"' + $testOutput + '"')) -WindowStyle Hidden -PassThru -Wait
     Get-Content -LiteralPath $testOutput
-    if ($testProcess.ExitCode -ne 0) { throw '解码测试失败。' }
+    if ($testProcess.ExitCode -ne 0) { throw '自测失败。' }
 }
 if ($CleanOldVersions) {
     & (Join-Path $projectPath 'clean-old-versions.ps1') -CurrentVersion $currentVersion
+}
+if ($Package) {
+    $distPath = Join-Path $projectPath 'dist'
+    New-Item -ItemType Directory -Force -Path $distPath | Out-Null
+    $packagePath = Join-Path $distPath ('SpaceKat-Helper-Windows-' + $currentVersion + '.zip')
+    $packageFiles = @($outputName, ($outputName + '.config'), '启动上位机.cmd', '演示模式.cmd', 'README.md', '使用说明.md',
+        'native\LICENSE-ViGEmClient.txt', 'native\SOURCES.md', 'native\x64\ViGEmClient.dll', 'native\x86\ViGEmClient.dll')
+    $packageFiles += $navigationResources | Where-Object { $_.StartsWith('fusion\') } | ForEach-Object { 'navigation\' + $_ }
+    foreach ($file in $packageFiles) {
+        if (!(Test-Path -LiteralPath (Join-Path $projectPath $file) -PathType Leaf)) { throw "缺少打包文件 $file" }
+    }
+    Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+    $packageStream = [IO.File]::Create($packagePath)
+    try {
+        $archive = [IO.Compression.ZipArchive]::new($packageStream, [IO.Compression.ZipArchiveMode]::Create, $true)
+        try {
+            foreach ($file in $packageFiles) {
+                [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, (Join-Path $projectPath $file), $file.Replace('\', '/'))
+            }
+        }
+        finally { $archive.Dispose() }
+    }
+    finally { $packageStream.Dispose() }
+    Write-Host ('已打包：' + $packagePath)
 }
