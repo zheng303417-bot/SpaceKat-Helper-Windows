@@ -14,7 +14,7 @@ namespace SpaceKatMonitor
         public const double MinimumFieldOfViewDegrees = 20;
         public const double MaximumFieldOfViewDegrees = 100;
         public const double ZoomSpeedDegrees = 60;
-        internal const double MaximumZoomSpeed = 3;
+        internal const double MaximumZoomSpeed = 4;
         private int sourceX = 5, sourceY = 3;
         private bool invertX, invertY = true;
         private double gainX = 1, gainY = 1, deadZone = 0.08, gamma = 1.5;

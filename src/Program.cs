@@ -17,7 +17,7 @@ namespace SpaceKatMonitor
     internal static class Program
     {
         internal const string ProductName = "SpaceKat 小助手";
-        internal const string Version = "1.31";
+        internal const string Version = "1.32";
 
         [STAThread]
         private static int Main(string[] args)
@@ -32,7 +32,7 @@ namespace SpaceKatMonitor
                         + MouseMotionTests.Run() + MouseOutputTests.Run() + MouseControlSessionTests.Run() + MouseButtonTests.Run() + CubeMotionTests.Run()
                         + RightStickTests.Run() + VirtualGamepadOutputTests.Run() + JoystickSettingsTests.Run()
                         + MouseWheelTests.Run() + MouseWheelSettingsTests.Run() + DominantAxisFilterTests.Run()
-                        + BatteryTests.Run() + GamepadButtonTests.Run() + NavigationBridgeTests.Run());
+                        + BatteryTests.Run() + GamepadButtonTests.Run() + NavigationBridgeTests.Run() + ButtonLayoutTests.Run());
                     return 0;
                 }
                 if (Array.IndexOf(args, "--gamepad-probe") >= 0)

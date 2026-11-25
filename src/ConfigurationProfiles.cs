@@ -12,7 +12,7 @@ namespace SpaceKatMonitor
         internal static readonly string[] Names =
         {
             "stick-settings.txt", "wheel-settings.txt", "mouse-settings.txt", "button-mapping.txt",
-            "button-actions.txt", "gamepad-button-actions.txt", "theme-settings.txt"
+            "button-actions.txt", "gamepad-button-actions.txt", "theme-settings.txt", ButtonLayout.FileName, JoystickSettings.PreviewSizeFile
         };
         private const int MaxTextLength = 8192;
 
@@ -54,6 +54,9 @@ namespace SpaceKatMonitor
                 case "stick-settings.txt":
                     JoystickSettings joystick;
                     return JoystickSettings.TryParse(text, out joystick);
+                case JoystickSettings.PreviewSizeFile:
+                    int previewSize;
+                    return JoystickSettings.TryParsePreviewSize(text, out previewSize);
                 case "wheel-settings.txt":
                     MouseWheelSettings wheel;
                     return MouseWheelSettings.TryParse(text, out wheel);
@@ -71,6 +74,9 @@ namespace SpaceKatMonitor
                 case "gamepad-button-actions.txt":
                     GamepadButtons[] gamepad;
                     return GamepadButtonModel.TryParse(text, out gamepad);
+                case ButtonLayout.FileName:
+                    ButtonLayout layout;
+                    return ButtonLayout.TryParse(text, out layout);
                 case "theme-settings.txt":
                     return AppTheme.Find(text) != null;
                 default:

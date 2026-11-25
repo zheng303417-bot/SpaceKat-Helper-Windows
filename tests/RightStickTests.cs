@@ -336,7 +336,7 @@ namespace SpaceKatMonitor
             m.ZoomGain = -1; m.ZoomDeadZone = -1; m.ZoomSpeed = -1;
             Check(Near(m.ZoomGain, .1) && Near(m.ZoomDeadZone, 0) && Near(m.ZoomSpeed, .05), ref count);
             m.ZoomGain = 100; m.ZoomDeadZone = 1; m.ZoomSpeed = 100;
-            Check(Near(m.ZoomGain, 3) && Near(m.ZoomDeadZone, .4) && Near(m.ZoomSpeed, 3), ref count);
+            Check(Near(m.ZoomGain, 3) && Near(m.ZoomDeadZone, .4) && Near(m.ZoomSpeed, 4), ref count);
             m.Enable(); m.Update(Axes(2, Int16.MaxValue), 0);
             Check(Finite(m.ZoomInput) && m.RightTrigger == 255 && m.LeftTrigger == 0 && Finite(m.FieldOfViewDegrees), ref count);
         }
@@ -430,12 +430,12 @@ namespace SpaceKatMonitor
             m.ZoomInvert = true; m.Update(Axes(2, 512), .12); m.Step(.14);
             Check(Near(m.FieldOfViewDegrees, fov + 191 / 255.0 * 60 * .02), ref count);
 
-            m = Zoom(); m.ZoomInSpeed = 3; m.ZoomOutSpeed = 2.4; m.Enable();
+            m = Zoom(); m.ZoomInSpeed = 4; m.ZoomOutSpeed = 3.5; m.Enable();
             m.Update(Axes(2, 256), 0); m.Step(.05);
-            fov = 60 - Math.Pow(.5, 1.5) * 3 * 60 * .05;
+            fov = 60 - Math.Pow(.5, 1.5) * 4 * 60 * .05;
             Check(m.RightTrigger == 255 && m.LeftTrigger == 0 && Near(m.FieldOfViewDegrees, fov), ref count);
             m.Update(Axes(2, -512), .05); m.Step(.1);
-            Check(m.LeftTrigger == 255 && m.RightTrigger == 0 && Near(m.FieldOfViewDegrees, fov + 7.2), ref count);
+            Check(m.LeftTrigger == 255 && m.RightTrigger == 0 && Near(m.FieldOfViewDegrees, fov + 10.5), ref count);
 
             // Old shared setters deliberately initialize both directions;
             // each new setter clamps without modifying the opposite setting.
@@ -453,10 +453,10 @@ namespace SpaceKatMonitor
             m.ZoomInSpeed = -1; m.ZoomOutSpeed = 100;
             m.ZoomInDeadZone = -1; m.ZoomOutDeadZone = 100;
             Check(Near(m.ZoomInGain, .1) && Near(m.ZoomOutGain, 3)
-                && Near(m.ZoomInSpeed, .05) && Near(m.ZoomOutSpeed, 3)
+                && Near(m.ZoomInSpeed, .05) && Near(m.ZoomOutSpeed, 4)
                 && Near(m.ZoomInDeadZone, 0) && Near(m.ZoomOutDeadZone, .4), ref count);
             m.ZoomInGain = 2;
-            Check(Near(m.ZoomOutGain, 3) && Near(m.ZoomOutSpeed, 3) && Near(m.ZoomOutDeadZone, .4), ref count);
+            Check(Near(m.ZoomOutGain, 3) && Near(m.ZoomOutSpeed, 4) && Near(m.ZoomOutDeadZone, .4), ref count);
         }
         private static void RunDominantAxisChecks(ref int count)
         {

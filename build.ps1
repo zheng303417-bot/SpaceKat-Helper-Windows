@@ -1,7 +1,7 @@
 ﻿param([switch]$Test, [switch]$CleanOldVersions, [switch]$Package)
 $ErrorActionPreference = 'Stop'
 $projectPath = $PSScriptRoot
-$currentVersion = '1.31'
+$currentVersion = '1.32'
 $outputName = 'SpaceKat小助手-' + $currentVersion + '.exe'
 if ($CleanOldVersions -and !$Test) { throw '清理旧版前必须通过检查，请同时指定 -Test。' }
 $frameworkPath = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
@@ -32,7 +32,7 @@ $navigationResources = @('spacekat_bridge.py', 'blender\__init__.py',
 foreach ($relativeFile in $navigationResources) {
     $compilerArgs += '/resource:' + (Join-Path $projectPath ('navigation\' + $relativeFile)) + ',Navigation.' + $relativeFile.Replace('\', '.')
 }
-foreach ($fileName in @('stick-settings.txt', 'wheel-settings.txt', 'mouse-settings.txt', 'button-mapping.txt', 'button-actions.txt', 'gamepad-button-actions.txt', 'theme-settings.txt')) {
+foreach ($fileName in @('stick-settings.txt', 'stick-preview-size.txt', 'wheel-settings.txt', 'mouse-settings.txt', 'button-mapping.txt', 'button-actions.txt', 'gamepad-button-actions.txt', 'button-layout.txt', 'theme-settings.txt')) {
     $compilerArgs += '/resource:' + (Join-Path $projectPath ('src\Defaults\' + $fileName)) + ',SpaceKatMonitor.Defaults.' + $fileName
 }
 $compilerArgs += $references | ForEach-Object { '/reference:' + $_ }

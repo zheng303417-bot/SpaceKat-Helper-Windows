@@ -541,18 +541,27 @@
                 <TextBlock Text="按键编号沿用鼠标映射页。设为实体启停的键只负责启停。" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0" TextWrapping="Wrap"/>
               </StackPanel>
             </Border>
-            <Grid>
-              <Grid.ColumnDefinitions><ColumnDefinition Width="1.25*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+            <Grid x:Name="StickPreviewGrid">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="1.25*"/><ColumnDefinition Width="*" MinWidth="210"/></Grid.ColumnDefinitions>
               <Border Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,0,14,0">
                 <Grid>
-                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                   <TextBlock Text="固定中心视角" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
                   <Button x:Name="StickResetViewButton" Content="重置视角与缩放" HorizontalAlignment="Right" Height="27" FontSize="10" Padding="9,0"/>
-                  <Border x:Name="StickCameraHost" Grid.Row="1" Height="245" Margin="0,9,0,8" CornerRadius="8" Background="#F5FAFB" ClipToBounds="True"/>
-                  <TextBlock x:Name="StickCameraText" Grid.Row="2" Text="Yaw 0° · Pitch 0° · 位置 (0,0,0) · Roll 0°" FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+                  <Grid Grid.Row="1" Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="175"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock Text="预览大小" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                    <Slider x:Name="StickPreviewSize" Grid.Column="1" TickFrequency="5" SmallChange="5" LargeChange="15"
+                            IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="10,0"
+                            AutomationProperties.Name="预览大小" ToolTip="调整预览区域的宽度和高度"/>
+                    <TextBlock x:Name="StickPreviewSizeText" Grid.Column="2" Text="100%" MinWidth="44" TextAlignment="Right"
+                               FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                  </Grid>
+                  <Border x:Name="StickCameraHost" Grid.Row="2" Margin="0,9,0,8" CornerRadius="8" Background="#F5FAFB" ClipToBounds="True"/>
+                  <TextBlock x:Name="StickCameraText" Grid.Row="3" Text="Yaw 0° · Pitch 0° · 位置 (0,0,0) · Roll 0°" FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
                 </Grid>
               </Border>
-              <Border Grid.Column="1" Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="14,12">
+              <Border Grid.Column="1" VerticalAlignment="Top" Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="14,12">
                 <StackPanel>
                   <TextBlock Text="右摇杆 · RIGHT STICK" FontSize="14" FontWeight="SemiBold"/>
                   <Border x:Name="RightStickHost" Height="205" Margin="0,8,0,4"/>
@@ -579,7 +588,7 @@
                     <TextBlock x:Name="ZoomOutGainText" Text="力度灵敏度 1.0×" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4"/>
                     <Slider x:Name="ZoomOutGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调节缩小的力度，越高越省力。"/>
                     <TextBlock x:Name="ZoomOutSpeedText" Text="缩小速度 50%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="ZoomOutSpeed" Minimum="5" Maximum="300" Value="50" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="超过 100% 时，本页缩小更快，虚拟扳机在较小的 Z 轴偏移时达到满值。"/>
+                    <Slider x:Name="ZoomOutSpeed" Minimum="5" Value="50" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="超过 100% 时，本页缩小更快，虚拟扳机在较小的 Z 轴偏移时达到满值。"/>
                     <TextBlock x:Name="ZoomOutDeadZoneText" Text="回中死区 8%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
                     <Slider x:Name="ZoomOutDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True" ToolTip="只调节缩小方向的回中死区。"/>
                   </StackPanel>
@@ -589,7 +598,7 @@
                     <TextBlock x:Name="ZoomInGainText" Text="力度灵敏度 1.0×" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4"/>
                     <Slider x:Name="ZoomInGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调节放大的力度，越高越省力。"/>
                     <TextBlock x:Name="ZoomInSpeedText" Text="放大速度 50%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="ZoomInSpeed" Minimum="5" Maximum="300" Value="50" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="超过 100% 时，本页放大更快，虚拟扳机在较小的 Z 轴偏移时达到满值。"/>
+                    <Slider x:Name="ZoomInSpeed" Minimum="5" Value="50" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="超过 100% 时，本页放大更快，虚拟扳机在较小的 Z 轴偏移时达到满值。"/>
                     <TextBlock x:Name="ZoomInDeadZoneText" Text="回中死区 8%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
                     <Slider x:Name="ZoomInDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True" ToolTip="只调节放大方向的回中死区。"/>
                   </StackPanel>
@@ -701,6 +710,20 @@
                 <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                 <StackPanel Margin="0,4,0,0"><TextBlock Text="主题色" Style="{StaticResource SectionTitleStyle}"/><TextBlock Text="选择界面强调色" Style="{StaticResource SecondaryTextStyle}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel>
                 <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Padding="16,14"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="155"/><ColumnDefinition Width="12"/><ColumnDefinition Width="60"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><ComboBox x:Name="ThemePicker" Height="32"/><Border Grid.Column="2" Height="32" Background="{DynamicResource AccentBrush}" CornerRadius="6"/><TextBlock Grid.Column="4" x:Name="ThemeStatusText" Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center" TextWrapping="Wrap"/></Grid></Border>
+              </Grid>
+              <Grid Margin="0,0,0,12">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,4,0,0"><TextBlock Text="按键布局" Style="{StaticResource SectionTitleStyle}"/></StackPanel>
+                <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Padding="16,14">
+                  <StackPanel>
+                    <StackPanel x:Name="ButtonLayoutRows"/>
+                    <WrapPanel Margin="0,10,0,0">
+                      <Button x:Name="ButtonLayoutSave" Content="保存" Style="{StaticResource PrimaryButton}" Height="32" Margin="0,0,8,0" AutomationProperties.Name="保存按键布局"/>
+                      <Button x:Name="ButtonLayoutReset" Content="恢复默认" Height="32" AutomationProperties.Name="恢复默认按键布局"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="ButtonLayoutStatus" Style="{StaticResource SecondaryTextStyle}" Margin="0,8,0,0" AutomationProperties.Name="按键布局状态"/>
+                  </StackPanel>
+                </Border>
               </Grid>
               <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>

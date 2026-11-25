@@ -30,7 +30,7 @@ namespace SpaceKatMonitor
             foreach (string suffix in new[] {
                 "True,False,0.09,0.08,0.5", "True,False,3.1,0.08,0.5", "True,False,NaN,0.08,0.5",
                 "True,False,1,-0.01,0.5", "True,False,1,0.41,0.5", "True,False,1,Infinity,0.5",
-                "True,False,1,0.08,0.04", "True,False,1,0.08,3.01", "True,False,1,0.08,NaN",
+                "True,False,1,0.08,0.04", "True,False,1,0.08,4.01", "True,False,1,0.08,NaN",
                 "yes,False,1,0.08,0.5", "True,no,1,0.08,0.5", "True,False,1,0.08", "True,False,1,0.08,0.5,0" })
                 Check(!JoystickSettings.TryParse(legacy + "," + suffix, out s) && s == null, ref count);
             foreach (string invalid in new[] { null, "", "5,3", legacy.Replace("5,3,", "6,3,"), legacy.Replace("1.2", "NaN"),
@@ -44,6 +44,12 @@ namespace SpaceKatMonitor
             }
             finally { Thread.CurrentThread.CurrentCulture = previous; }
             RunDirectionalChecks(legacy, ref count);
+            int previewSize;
+            Check(JoystickSettings.TryParsePreviewSize("85", out previewSize) && previewSize == 85 &&
+                ConfigurationProfiles.IsValid(JoystickSettings.PreviewSizeFile, "180"), ref count);
+            Check(!ConfigurationProfiles.IsValid(JoystickSettings.PreviewSizeFile, "84") &&
+                !ConfigurationProfiles.IsValid(JoystickSettings.PreviewSizeFile, "181") &&
+                !ConfigurationProfiles.IsValid(JoystickSettings.PreviewSizeFile, "125.5"), ref count);
             return "PASS: " + count + " joystick settings checks (legacy migration and saved zoom controls)\r\n";
         }
 
@@ -59,27 +65,27 @@ namespace SpaceKatMonitor
             Check(s.Serialize().StartsWith(oldProfile + ",", StringComparison.Ordinal)
                 && s.Serialize().Split(',').Length == 25 && s.DominantAxisEnabled, ref count);
             s.ZoomInGain = 2.1; s.ZoomOutGain = .4;
-            s.ZoomInSpeed = 3; s.ZoomOutSpeed = 2.4;
+            s.ZoomInSpeed = 4; s.ZoomOutSpeed = 3.5;
             s.ZoomInDeadZone = .03; s.ZoomOutDeadZone = .27;
             s.ZoomInvert = true;
             string saved = s.Serialize();
             Check(JoystickSettings.TryParse(saved, out s) && s.ZoomInvert && s.ZoomEnabled, ref count);
-            Check(s.ZoomInGain == 2.1 && s.ZoomOutGain == .4 && s.ZoomInSpeed == 3 && s.ZoomOutSpeed == 2.4
+            Check(s.ZoomInGain == 2.1 && s.ZoomOutGain == .4 && s.ZoomInSpeed == 4 && s.ZoomOutSpeed == 3.5
                 && s.ZoomInDeadZone == .03 && s.ZoomOutDeadZone == .27, ref count);
             Check(s.SourceX == 5 && s.SourceY == 3 && s.InvertX && s.InvertY && s.OutputMode == 0
                 && s.ToggleKey == 4 && s.Centers[0] == -8 && s.Centers[2] == 23 && s.Centers[5] == 62, ref count);
             Check(s.Serialize() == saved, ref count);
             string previousVersion = saved.Substring(0, saved.LastIndexOf(','));
             Check(JoystickSettings.TryParse(previousVersion, out s) && s.DominantAxisEnabled
-                && s.ZoomOutDeadZone == .27 && s.ZoomOutSpeed == 2.4 && s.Centers[2] == 23, ref count);
+                && s.ZoomOutDeadZone == .27 && s.ZoomOutSpeed == 3.5 && s.Centers[2] == 23, ref count);
             Check(JoystickSettings.TryParse(oldProfile + ",0.4,0.85", out s)
                 && s.ZoomOutGain == .4 && s.ZoomOutSpeed == .85 && s.ZoomOutDeadZone == .08 && s.DominantAxisEnabled, ref count);
             foreach (string suffix in new[] {
-                "True,False,0.1,0,0.05,0.1,0.05,0", "True,True,3,0.4,1,3,1,0.4" })
+                "True,False,0.1,0,0.05,0.1,0.05,0", "True,True,3,0.4,4,3,4,0.4" })
                 Check(JoystickSettings.TryParse(legacy + "," + suffix, out s), ref count);
             foreach (int index in new[] { 18, 19, 20, 21, 22, 23 })
             {
-                foreach (string invalid in new[] { "NaN", "Infinity", "-0.01", "4" })
+                foreach (string invalid in new[] { "NaN", "Infinity", "-0.01", "4.01" })
                 {
                     string[] fields = saved.Split(','); fields[index] = invalid;
                     Check(!JoystickSettings.TryParse(String.Join(",", fields), out s) && s == null, ref count);

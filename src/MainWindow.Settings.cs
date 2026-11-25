@@ -195,12 +195,14 @@ namespace SpaceKatMonitor
             try
             {
                 LoadJoystickSettings();
+                LoadStickPreviewSize();
                 LoadStickButtonMappings();
                 ApplyJoystickSettings();
                 ApplyZoomSettings();
             }
             finally { _loadingStickSettings = false; }
             LoadTheme();
+            LoadButtonLayout();
             Render(DateTime.UtcNow);
         }
 

@@ -5,6 +5,9 @@ namespace SpaceKatMonitor
 {
     internal sealed class JoystickSettings
     {
+        internal const string PreviewSizeFile = "stick-preview-size.txt";
+        internal const int MinimumPreviewSize = 85, DefaultPreviewSize = 100, MaximumPreviewSize = 180;
+
         public int SourceX = 5, SourceY = 3, OutputMode = 1, ToggleKey;
         public bool InvertX, InvertY = true, ZoomEnabled = true, ZoomInvert, DominantAxisEnabled = true;
         public double GainX = 1, GainY = 1, DeadZone = .08, Gamma = 1.5;
@@ -72,6 +75,11 @@ namespace SpaceKatMonitor
             p[23] = ZoomOutDeadZone.ToString(CultureInfo.InvariantCulture);
             p[24] = DominantAxisEnabled.ToString();
             return String.Join(",", p);
+        }
+
+        internal static bool TryParsePreviewSize(string text, out int size)
+        {
+            return Integer(text, MinimumPreviewSize, MaximumPreviewSize, out size);
         }
 
         private static bool Integer(string text, int min, int max, out int value)

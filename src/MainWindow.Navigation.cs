@@ -20,6 +20,8 @@ namespace SpaceKatMonitor
         private readonly ComboBox[] _navigationButtonPickers = new ComboBox[4];
         private readonly Button[] _navigationLearnButtons = new Button[4];
         private readonly ComboBox[] _fusionButtonPickers = new ComboBox[4];
+        private readonly StackPanel[] _navigationButtonPanels = new StackPanel[4];
+        private readonly TextBlock[] _navigationButtonLabels = new TextBlock[4];
         private TextBlock _navigationButtonHelp;
         private readonly int[] _fusionLogicalBits = new int[4];
         private static readonly FusionViewCommand[] FusionButtonOptions =
@@ -85,15 +87,17 @@ namespace SpaceKatMonitor
             {
                 int button = slot;
                 ButtonCard card = _buttonCards[slot];
-                string label = "按键 " + (slot + 1);
-                var column = new StackPanel { Margin = new Thickness(0, 0, slot == _buttonCards.Length - 1 ? 0 : 12, 0) };
-                column.Children.Add(new TextBlock { Text = label, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 4) });
+                var column = new StackPanel { Margin = new Thickness(4, 0, 4, 0) };
+                var label = new TextBlock { FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 4),
+                    TextTrimming = TextTrimming.CharacterEllipsis };
+                column.Children.Add(label);
+                _navigationButtonLabels[slot] = label;
+                _navigationButtonPanels[slot] = column;
 
                 var binding = new Grid();
                 binding.ColumnDefinitions.Add(new ColumnDefinition());
                 binding.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var logical = new ComboBox { Height = 30, MinWidth = 70, Margin = new Thickness(0, 0, 4, 0) };
-                System.Windows.Automation.AutomationProperties.SetName(logical, label + "对应的逻辑键");
                 for (int number = 1; number <= 32; number++) logical.Items.Add("逻辑键 " + number);
                 logical.SelectedIndex = card.LogicalBit;
                 logical.SelectionChanged += delegate
@@ -108,7 +112,6 @@ namespace SpaceKatMonitor
                 binding.Children.Add(logical);
 
                 var learn = new Button { Content = "学习此键", Height = 30, Padding = new Thickness(7, 0, 7, 0), Tag = card };
-                System.Windows.Automation.AutomationProperties.SetName(learn, "学习" + label);
                 learn.Click += BeginLearning;
                 Grid.SetColumn(learn, 1);
                 binding.Children.Add(learn);
@@ -118,7 +121,6 @@ namespace SpaceKatMonitor
                 var action = new ComboBox { Height = 32, Margin = new Thickness(0, 7, 0, 0),
                     Visibility = Visibility.Collapsed, ItemsSource = FusionButtonLabels,
                     SelectedIndex = Array.IndexOf(FusionButtonOptions, _fusionButtonCommands[slot]) };
-                System.Windows.Automation.AutomationProperties.SetName(action, label + "的 Fusion 动作");
                 action.SelectionChanged += delegate
                 {
                     if (action.SelectedIndex >= 0) _fusionButtonCommands[button] = FusionButtonOptions[action.SelectedIndex];
@@ -144,8 +146,8 @@ namespace SpaceKatMonitor
                 _navigationLearnButtons[slot].Content = learning ? "取消学习" : "学习此键";
                 _navigationLearnButtons[slot].IsEnabled = !_demo && _selected != null;
             }
-            string feedback = _learningCard != null ? "松开所有键，再短按并松开按键 " +
-                (Array.IndexOf(_buttonCards, _learningCard) + 1) + "。" : _learningFeedback;
+            string feedback = _learningCard != null ? "松开所有键，再短按并松开「" +
+                ButtonName(_learningCard) + "」。" : _learningFeedback;
             _navigationButtonHelp.Text = feedback ?? (SelectedNavigationTarget == NavigationTarget.FusionNative ?
                 "动作在 Fusion 相机直连模式生效。逻辑键与鼠标映射页共用。" :
                 "逻辑键与鼠标映射页共用。连接设备后可按下物理键学习。");

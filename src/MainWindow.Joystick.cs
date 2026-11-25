@@ -18,6 +18,7 @@ namespace SpaceKatMonitor
             { GamepadButtons.A, GamepadButtons.B, GamepadButtons.X, GamepadButtons.Y };
         private readonly ComboBox[] _stickButtonCombos = new ComboBox[4];
         private readonly TextBlock[] _stickButtonLabels = new TextBlock[4];
+        private readonly StackPanel[] _stickButtonPanels = new StackPanel[4];
         private TextBlock _stickButtonState;
         private Grid _joystickPage;
         private Button _joystickNav, _stickToggle;
@@ -34,6 +35,10 @@ namespace SpaceKatMonitor
         private ProgressBar _zoomLeftMeter, _zoomRightMeter;
         private RightStickView _stickView;
         private FixedCameraView _stickCamera;
+        private Border _stickCameraHost;
+        private ColumnDefinition _stickCameraColumn;
+        private Slider _stickPreviewSize;
+        private TextBlock _stickPreviewSizeText;
         private DispatcherTimer _stickTimer;
         private bool _loadingStickSettings, _stickHotkeyArmed;
         private uint _stickPreviousButtons;
@@ -73,6 +78,7 @@ namespace SpaceKatMonitor
             _zoomOutGain = Find<Slider>("ZoomOutGain");
             _zoomInSpeed = Find<Slider>("ZoomInSpeed");
             _zoomOutSpeed = Find<Slider>("ZoomOutSpeed");
+            _zoomInSpeed.Maximum = _zoomOutSpeed.Maximum = RightStickModel.MaximumZoomSpeed * 100;
             _zoomInDeadZone = Find<Slider>("ZoomInDeadZone");
             _zoomOutDeadZone = Find<Slider>("ZoomOutDeadZone");
             _zoomInGainText = Find<TextBlock>("ZoomInGainText");
@@ -89,7 +95,13 @@ namespace SpaceKatMonitor
             _stickView = new RightStickView();
             _stickCamera = new FixedCameraView();
             Find<Border>("RightStickHost").Child = _stickView;
-            Find<Border>("StickCameraHost").Child = _stickCamera;
+            _stickCameraHost = Find<Border>("StickCameraHost");
+            _stickCameraHost.Child = _stickCamera;
+            _stickCameraColumn = Find<Grid>("StickPreviewGrid").ColumnDefinitions[0];
+            _stickPreviewSize = Find<Slider>("StickPreviewSize");
+            _stickPreviewSize.Minimum = JoystickSettings.MinimumPreviewSize;
+            _stickPreviewSize.Maximum = JoystickSettings.MaximumPreviewSize;
+            _stickPreviewSizeText = Find<TextBlock>("StickPreviewSizeText");
             _loadingStickSettings = true;
             foreach (string axis in new[] { "X", "Y", "Z", "Rx", "Ry", "Rz" })
             { _stickSourceX.Items.Add(axis); _stickSourceY.Items.Add(axis); }
@@ -98,14 +110,15 @@ namespace SpaceKatMonitor
             _stickOutputMode.Items.Add("本页视角预览");
             _stickOutputMode.Items.Add("虚拟 Xbox 手柄 + 本页预览");
             _stickOutputMode.SelectedIndex = 1;
-            _stickToggleKey.Items.Add("不使用实体按键");
-            for (int i = 1; i <= 4; i++) _stickToggleKey.Items.Add("按键 " + i + " 启停");
-            _stickToggleKey.SelectedIndex = 0;
+            _stickToggleKey.SelectedValuePath = "Tag";
+            RefreshStickToggleChoices();
             InitializeStickButtonMappings();
             LoadJoystickSettings();
+            LoadStickPreviewSize();
             ApplyJoystickSettings();
             ApplyZoomSettings();
             _loadingStickSettings = false;
+            _stickPreviewSize.ValueChanged += delegate { StickPreviewSizeChanged(); };
             foreach (ComboBox combo in new[] { _stickSourceX, _stickSourceY, _stickOutputMode, _stickToggleKey })
                 combo.SelectionChanged += delegate { JoystickSettingsChanged(); };
             foreach (Slider slider in new[] { _stickGainX, _stickGainY, _stickDeadZone, _stickGamma })
@@ -142,6 +155,48 @@ namespace SpaceKatMonitor
             _stickTimer = new DispatcherTimer(DispatcherPriority.Input);
             _stickTimer.Interval = TimeSpan.FromMilliseconds(10);
             _stickTimer.Tick += delegate { JoystickTick(); };
+        }
+
+        private void LoadStickPreviewSize()
+        {
+            int size = JoystickSettings.DefaultPreviewSize;
+            foreach (string candidate in SettingCandidates(JoystickSettings.PreviewSizeFile))
+            {
+                int saved;
+                if (!JoystickSettings.TryParsePreviewSize(candidate, out saved)) continue;
+                size = saved;
+                break;
+            }
+            _stickPreviewSize.Value = size;
+            ApplyStickPreviewSize();
+        }
+
+        private void ApplyStickPreviewSize()
+        {
+            double scale = _stickPreviewSize.Value / JoystickSettings.DefaultPreviewSize;
+            _stickCameraHost.Height = 245 * scale;
+            _stickCameraColumn.Width = new GridLength(1.25 * scale, GridUnitType.Star);
+            _stickPreviewSizeText.Text = _stickPreviewSize.Value.ToString("0", CultureInfo.InvariantCulture) + "%";
+            _stickPreviewSizeText.ToolTip = null;
+        }
+
+        private void StickPreviewSizeChanged()
+        {
+            if (_loadingStickSettings) return;
+            ApplyStickPreviewSize();
+            try
+            {
+                ConfigurationProfiles.WriteText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, JoystickSettings.PreviewSizeFile),
+                    _stickPreviewSize.Value.ToString("0", CultureInfo.InvariantCulture));
+            }
+            catch (IOException error) { ShowStickPreviewSizeSaveError(error); }
+            catch (UnauthorizedAccessException error) { ShowStickPreviewSizeSaveError(error); }
+        }
+
+        private void ShowStickPreviewSizeSaveError(Exception error)
+        {
+            _stickPreviewSizeText.Text += " · 未保存";
+            _stickPreviewSizeText.ToolTip = error.Message;
         }
 
         private void ApplyJoystickSettings()
@@ -294,8 +349,32 @@ namespace SpaceKatMonitor
 
         private int StickToggleBit()
         {
-            int slot = _stickToggleKey == null ? -1 : _stickToggleKey.SelectedIndex - 1;
+            int slot = StickToggleKey - 1;
             return slot >= 0 && slot < _buttonCards.Length ? _buttonCards[slot].LogicalBit : -1;
+        }
+
+        private int StickToggleKey
+        {
+            get { return _stickToggleKey.SelectedValue is int ? (int)_stickToggleKey.SelectedValue : 0; }
+        }
+
+        private void RefreshStickToggleChoices()
+        {
+            int selected = StickToggleKey;
+            bool loading = _loadingStickSettings;
+            _loadingStickSettings = true;
+            try
+            {
+                _stickToggleKey.Items.Clear();
+                _stickToggleKey.Items.Add(new ComboBoxItem { Content = "不使用实体按键", Tag = 0 });
+                for (int position = 0; position < _buttonCards.Length; position++)
+                {
+                    int slot = _buttonLayout.SlotAt(position);
+                    _stickToggleKey.Items.Add(new ComboBoxItem { Content = _buttonLayout.Name(slot) + " 启停", Tag = slot + 1 });
+                }
+                _stickToggleKey.SelectedValue = selected;
+            }
+            finally { _loadingStickSettings = loading; }
         }
 
         private void ProcessJoystickButtons(uint mask)
@@ -316,7 +395,8 @@ namespace SpaceKatMonitor
             {
                 int index = i;
                 StackPanel card = new StackPanel { Margin = new Thickness(4, 0, 4, 0) };
-                TextBlock label = new TextBlock { FontSize = 11, Foreground = Muted, Margin = new Thickness(0, 0, 0, 4) };
+                TextBlock label = new TextBlock { FontSize = 11, Foreground = Muted, Margin = new Thickness(0, 0, 0, 4),
+                    TextTrimming = TextTrimming.CharacterEllipsis };
                 ComboBox combo = new ComboBox { Height = 28, FontSize = 11 };
                 foreach (GamepadButtons button in GamepadButtonModel.Options)
                     combo.Items.Add(button == GamepadButtons.None ? "无动作" : button.ToString());
@@ -334,6 +414,7 @@ namespace SpaceKatMonitor
                 };
                 _stickButtonCombos[i] = combo;
                 _stickButtonLabels[i] = label;
+                _stickButtonPanels[i] = card;
                 card.Children.Add(label);
                 card.Children.Add(combo);
                 host.Children.Add(card);
@@ -366,7 +447,7 @@ namespace SpaceKatMonitor
             for (int i = 0; i < _stickButtonCombos.Length; i++)
             {
                 bool reserved = toggleBit >= 0 && _buttonCards[i].LogicalBit == toggleBit;
-                _stickButtonLabels[i].Text = "按键 " + (i + 1) + (reserved ? " · 启停专用" : " · 逻辑键 " + (_buttonCards[i].LogicalBit + 1));
+                _stickButtonLabels[i].Text = _buttonLayout.Name(i) + (reserved ? " · 启停专用" : " · 逻辑键 " + (_buttonCards[i].LogicalBit + 1));
                 _stickButtonCombos[i].IsEnabled = !reserved;
             }
             _stickButtonState.Text = (_gamepadOutput.IsConnected ? "手柄输出 " : "按键预览 ") +
@@ -418,7 +499,7 @@ namespace SpaceKatMonitor
                 _stickInvertX.IsChecked = s.InvertX; _stickInvertY.IsChecked = s.InvertY;
                 _stickGainX.Value = s.GainX; _stickGainY.Value = s.GainY;
                 _stickDeadZone.Value = s.DeadZone; _stickGamma.Value = s.Gamma;
-                _stickOutputMode.SelectedIndex = s.OutputMode; _stickToggleKey.SelectedIndex = s.ToggleKey;
+                _stickOutputMode.SelectedIndex = s.OutputMode; _stickToggleKey.SelectedValue = s.ToggleKey;
                 _zoomEnabled.IsChecked = s.ZoomEnabled; _zoomInvert.IsChecked = s.ZoomInvert;
                 _stickDominantAxis.IsChecked = s.DominantAxisEnabled;
                 _zoomInGain.Value = s.ZoomInGain; _zoomOutGain.Value = s.ZoomOutGain;
@@ -436,7 +517,7 @@ namespace SpaceKatMonitor
                 SourceX = _joystick.SourceX, SourceY = _joystick.SourceY,
                 InvertX = _joystick.InvertX, InvertY = _joystick.InvertY,
                 GainX = _joystick.GainX, GainY = _joystick.GainY, DeadZone = _joystick.DeadZone, Gamma = _joystick.Gamma,
-                OutputMode = _stickOutputMode.SelectedIndex, ToggleKey = _stickToggleKey.SelectedIndex, Centers = _joystick.Centers,
+                OutputMode = _stickOutputMode.SelectedIndex, ToggleKey = StickToggleKey, Centers = _joystick.Centers,
                 ZoomEnabled = _joystick.ZoomEnabled, ZoomInvert = _joystick.ZoomInvert,
                 DominantAxisEnabled = _joystick.DominantAxisEnabled,
                 ZoomInGain = _joystick.ZoomInGain, ZoomOutGain = _joystick.ZoomOutGain,

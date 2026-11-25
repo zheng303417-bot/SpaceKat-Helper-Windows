@@ -34,6 +34,7 @@ namespace SpaceKatMonitor
         private sealed class ButtonCard
         {
             public Border Panel;
+            public TextBlock Title;
             public Ellipse Dot;
             public TextBlock State;
             public TextBlock Count;
@@ -41,6 +42,7 @@ namespace SpaceKatMonitor
             public ComboBox MouseAction;
             public Button Learn;
             public Border TestPanel;
+            public TextBlock TestTitle;
             public Ellipse TestDot;
             public TextBlock TestState;
             public TextBlock TestCount;
@@ -275,6 +277,7 @@ namespace SpaceKatMonitor
             InitializeJoystick();
             InitializeNavigation();
             InitializeSettings();
+            InitializeButtonLayout();
             SourceInitialized += InitializeInput;
             Closed += OnClosed;
 
@@ -422,7 +425,9 @@ namespace SpaceKatMonitor
                 };
                 StackPanel content = new StackPanel();
                 Grid heading = new Grid();
-                heading.Children.Add(new TextBlock { Text = "按键 " + (i + 1).ToString(CultureInfo.InvariantCulture), FontSize = 12, FontWeight = FontWeights.SemiBold });
+                card.Title = new TextBlock { FontSize = 12, FontWeight = FontWeights.SemiBold,
+                    Margin = new Thickness(0, 0, 14, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+                heading.Children.Add(card.Title);
                 card.Dot = new Ellipse { Width = 8, Height = 8, Fill = QuietDot, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
                 heading.Children.Add(card.Dot);
                 content.Children.Add(heading);
@@ -489,7 +494,9 @@ namespace SpaceKatMonitor
                     CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 10, 14, 10), Margin = new Thickness(5, 0, 5, 0) };
                 StackPanel content = new StackPanel();
                 Grid heading = new Grid();
-                heading.Children.Add(new TextBlock { Text = "按键 " + (i + 1), FontSize = 12, FontWeight = FontWeights.SemiBold });
+                card.TestTitle = new TextBlock { FontSize = 12, FontWeight = FontWeights.SemiBold,
+                    Margin = new Thickness(0, 0, 14, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+                heading.Children.Add(card.TestTitle);
                 card.TestDot = new Ellipse { Width = 8, Height = 8, Fill = QuietDot, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
                 heading.Children.Add(card.TestDot);
                 content.Children.Add(heading);
@@ -502,6 +509,43 @@ namespace SpaceKatMonitor
                 card.TestPanel.Child = content;
                 host.Children.Add(card.TestPanel);
             }
+        }
+
+        private string ButtonName(ButtonCard card)
+        {
+            return _buttonLayout.Name(Array.IndexOf(_buttonCards, card));
+        }
+
+        private void ApplyButtonPresentation()
+        {
+            for (int slot = 0; slot < _buttonCards.Length; slot++)
+            {
+                ButtonCard card = _buttonCards[slot];
+                string name = _buttonLayout.Name(slot);
+                card.Title.Text = card.TestTitle.Text = _navigationButtonLabels[slot].Text = name;
+                card.Title.ToolTip = card.TestTitle.ToolTip = _navigationButtonLabels[slot].ToolTip = _stickButtonLabels[slot].ToolTip = name;
+                System.Windows.Automation.AutomationProperties.SetName(card.Mapping, name + "对应的逻辑键");
+                System.Windows.Automation.AutomationProperties.SetName(card.MouseAction, name + "的鼠标动作");
+                System.Windows.Automation.AutomationProperties.SetName(card.Learn, "学习" + name);
+                System.Windows.Automation.AutomationProperties.SetName(_navigationButtonPickers[slot], name + "对应的逻辑键");
+                System.Windows.Automation.AutomationProperties.SetName(_navigationLearnButtons[slot], "学习" + name);
+                System.Windows.Automation.AutomationProperties.SetName(_fusionButtonPickers[slot], name + "的 Fusion 动作");
+                System.Windows.Automation.AutomationProperties.SetName(_stickButtonCombos[slot], name + "的手柄动作");
+            }
+            OrderButtonPanels("ButtonsHost", slot => _buttonCards[slot].Panel);
+            OrderButtonPanels("TestButtonsHost", slot => _buttonCards[slot].TestPanel);
+            OrderButtonPanels("NavigationButtonsHost", slot => _navigationButtonPanels[slot]);
+            OrderButtonPanels("StickButtonsHost", slot => _stickButtonPanels[slot]);
+            RefreshStickToggleChoices();
+            Render(DateTime.UtcNow);
+        }
+
+        private void OrderButtonPanels(string hostName, Func<int, UIElement> panel)
+        {
+            UniformGrid host = Find<UniformGrid>(hostName);
+            host.Children.Clear();
+            for (int position = 0; position < _buttonCards.Length; position++)
+                host.Children.Add(panel(_buttonLayout.SlotAt(position)));
         }
 
         private void InitializeInput(object sender, EventArgs args)
@@ -933,7 +977,7 @@ namespace SpaceKatMonitor
             if (!_demo)
             {
                 int supportedCount = _selected != null && _selected.HasButtonCaps ? CountBits(_selected.ValidButtonsMask) : 32;
-                _buttonHelpText.Text = _learningCard != null ? "正在学习按键 " + (Array.IndexOf(_buttonCards, _learningCard) + 1) + "：先松开所有键，再短按并释放对应物理键。"
+                _buttonHelpText.Text = _learningCard != null ? "正在学习「" + ButtonName(_learningCard) + "」。先松开所有键，再短按并释放对应的实体键。"
                     : !String.IsNullOrEmpty(_learningFeedback) ? _learningFeedback
                     : supportedCount < 4 ? "描述符声明 " + supportedCount + " 个逻辑键；兼容读取保留原始位，请逐键学习实际对应关系。"
                     : "逐个点击“学习此键”，再短按并释放对应物理键；短脉冲会高亮并计数。";
@@ -1284,7 +1328,6 @@ namespace SpaceKatMonitor
             ButtonCard learned = _learningCard;
             int logical = 0;
             while ((1u << logical) != _learnCandidate && logical < 31) logical++;
-            int physical = Array.IndexOf(_buttonCards, learned) + 1;
             bool duplicate = false;
             foreach (ButtonCard other in _buttonCards)
                 if (other != learned && other.LogicalBit == logical) duplicate = true;
@@ -1295,8 +1338,8 @@ namespace SpaceKatMonitor
             learned.PressCount = 1;
             learned.FlashUntil = now.AddMilliseconds(350);
             SaveMappings();
-            CancelLearning("按键 " + physical + " 已学习为逻辑键 " + (logical + 1) +
-                (duplicate ? "；此编号也被其他卡片使用，请继续逐键学习。" : "。"));
+            CancelLearning("「" + ButtonName(learned) + "」已学习为逻辑键 " + (logical + 1) + "。" +
+                (duplicate ? "此编号也被其他按键使用，请继续逐键学习。" : ""));
         }
 
         private void LoadMappings()
@@ -1387,8 +1430,14 @@ namespace SpaceKatMonitor
             for (int i = 0; i < 6; i++)
                 text.AppendLine(names[i] + "=" + (_axesKnown ? _axes[i].ToString(CultureInfo.InvariantCulture) : "未知"));
             text.AppendLine(_buttonsKnown ? "Buttons=0x" + _buttons.ToString("X8", CultureInfo.InvariantCulture) : "Buttons=unknown");
-            for (int i = 0; i < 4; i++)
-                text.AppendLine("按键" + (i + 1).ToString(CultureInfo.InvariantCulture) + "：逻辑键" + (_buttonCards[i].LogicalBit + 1).ToString(CultureInfo.InvariantCulture) + "，" + _buttonCards[i].State.Text + "，" + _buttonCards[i].Count.Text + "，鼠标功能=" + (MouseButtonAction)_buttonCards[i].MouseAction.SelectedIndex);
+            for (int position = 0; position < _buttonCards.Length; position++)
+            {
+                int slot = _buttonLayout.SlotAt(position);
+                ButtonCard card = _buttonCards[slot];
+                text.AppendLine("按键" + (slot + 1).ToString(CultureInfo.InvariantCulture) + "（" + _buttonLayout.Name(slot) + "） 逻辑键" +
+                    (card.LogicalBit + 1).ToString(CultureInfo.InvariantCulture) + "，" + card.State.Text + "，" + card.Count.Text +
+                    "，鼠标功能=" + (MouseButtonAction)card.MouseAction.SelectedIndex);
+            }
             text.AppendLine("LastReceivedUtc=" + (_lastReceived == DateTime.MinValue ? "unknown" : _lastReceived.ToString("O", CultureInfo.InvariantCulture)));
             text.AppendLine("LastReport=" + (_lastRaw ?? "unknown"));
             text.AppendLine("LastButtonReport=" + (_lastButtonRaw ?? "unknown"));
