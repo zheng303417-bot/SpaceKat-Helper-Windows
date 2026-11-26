@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Win32;
@@ -21,7 +22,13 @@ namespace SpaceKatMonitor
         private AppTheme _theme;
         private bool _loadingTheme;
 
+        private readonly List<Button> _themeSwatches = new List<Button>();
+        private System.Windows.Media.Effects.DropShadowEffect _accentGlow;
+        private Brush _onAccent = Brushes.White, _onAccentSoft = Brushes.White;
+
         private Brush Accent { get { return (Brush)_root.Resources["AccentBrush"]; } }
+        private Brush AccentText { get { return (Brush)_root.Resources["AccentTextBrush"]; } }
+        private Brush AccentFill { get { return (Brush)_root.Resources["AccentFillBrush"]; } }
         private Brush HighlightBackground { get { return (Brush)_root.Resources["AccentTintBrush"]; } }
         private Brush HighlightBorder { get { return (Brush)_root.Resources["AccentEdgeBrush"]; } }
 
@@ -36,7 +43,18 @@ namespace SpaceKatMonitor
             _themePicker = Find<ComboBox>("ThemePicker");
             _themeStatus = Find<TextBlock>("ThemeStatusText");
             _configurationStatus = Find<TextBlock>("ConfigurationStatusText");
-            foreach (AppTheme theme in AppTheme.Choices) _themePicker.Items.Add(theme.Name);
+            StackPanel swatches = Find<StackPanel>("ThemeSwatches");
+            for (int i = 0; i < AppTheme.Choices.Length; i++)
+            {
+                AppTheme choice = AppTheme.Choices[i];
+                int index = i;
+                _themePicker.Items.Add(choice.Name);
+                Button swatch = new Button { Style = (Style)_root.Resources["ThemeSwatch"], Background = ColorBrush(choice.Accent), ToolTip = choice.Name };
+                System.Windows.Automation.AutomationProperties.SetName(swatch, "主题色 " + choice.Name);
+                swatch.Click += delegate { _themePicker.SelectedIndex = index; };
+                _themeSwatches.Add(swatch);
+                swatches.Children.Add(swatch);
+            }
             LoadTheme();
             _themePicker.SelectionChanged += delegate { ChangeTheme(); };
             Find<Button>("ImportConfigurationButton").Click += delegate { ImportConfiguration(); };
@@ -110,13 +128,34 @@ namespace SpaceKatMonitor
         {
             _theme = theme;
             _root.Resources["AccentBrush"] = ColorBrush(theme.Accent);
-            _root.Resources["SidebarBrush"] = ColorBrush(theme.Sidebar);
+            _root.Resources["AccentDeepBrush"] = ColorBrush(theme.Deep);
             _root.Resources["AccentTintBrush"] = ColorBrush(theme.Tint);
             _root.Resources["AccentEdgeBrush"] = ColorBrush(theme.Edge);
+            _root.Resources["AccentTextBrush"] = ColorBrush(theme.Text);
+            _onAccent = ColorBrush(theme.OnAccent);
+            Color soft = (Color)ColorConverter.ConvertFromString(theme.OnAccent);
+            soft.A = 0xCC;
+            _onAccentSoft = new SolidColorBrush(soft);
+            _onAccentSoft.Freeze();
+            _root.Resources["OnAccentBrush"] = _onAccent;
+            // Dark labels sit on the lighter half of the family, white labels on the deeper half.
+            bool lightLabels = String.Equals(theme.OnAccent, "#FFFFFF", StringComparison.OrdinalIgnoreCase);
+            LinearGradientBrush fill = new LinearGradientBrush((Color)ColorConverter.ConvertFromString(lightLabels ? theme.Accent : theme.Light),
+                (Color)ColorConverter.ConvertFromString(lightLabels ? theme.Deep : theme.Accent), 90);
+            fill.Freeze();
+            _root.Resources["AccentFillBrush"] = fill;
+            _accentGlow = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                Color = (Color)ColorConverter.ConvertFromString(theme.Accent), BlurRadius = 18, ShadowDepth = 5,
+                Direction = 270, Opacity = 0.32, RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance
+            };
+            _accentGlow.Freeze();
             _loadingTheme = true;
             try { _themePicker.SelectedIndex = Array.IndexOf(AppTheme.Choices, theme); }
             finally { _loadingTheme = false; }
-            _themeStatus.Text = theme.Accent;
+            for (int i = 0; i < _themeSwatches.Count; i++)
+                _themeSwatches[i].Tag = AppTheme.Choices[i] == theme ? "on" : null;
+            _themeStatus.Text = theme.Name;
             RenderNavigation();
         }
 

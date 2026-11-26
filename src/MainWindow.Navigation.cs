@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Win32;
 
@@ -20,7 +21,12 @@ namespace SpaceKatMonitor
         private readonly ComboBox[] _navigationButtonPickers = new ComboBox[4];
         private readonly Button[] _navigationLearnButtons = new Button[4];
         private readonly ComboBox[] _fusionButtonPickers = new ComboBox[4];
-        private readonly StackPanel[] _navigationButtonPanels = new StackPanel[4];
+        private readonly Border[] _navigationButtonPanels = new Border[4];
+        private readonly System.Collections.Generic.List<Button> _navigationTargetTiles = new System.Collections.Generic.List<Button>();
+        private readonly System.Collections.Generic.List<Border> _navigationTargetBadges = new System.Collections.Generic.List<Border>();
+        private readonly System.Collections.Generic.List<TextBlock> _navigationTargetMarks = new System.Collections.Generic.List<TextBlock>();
+        private static readonly Brush BadgeIdle = ColorBrush("#E8E4DD");
+        private static readonly Brush Graphite = ColorBrush("#2B2A27");
         private readonly TextBlock[] _navigationButtonLabels = new TextBlock[4];
         private TextBlock _navigationButtonHelp;
         private readonly int[] _fusionLogicalBits = new int[4];
@@ -69,6 +75,7 @@ namespace SpaceKatMonitor
                 Render(DateTime.UtcNow);
             };
             _navigationTarget.SelectionChanged += delegate { UpdateNavigationInstructions(); };
+            InitializeNavigationTargetTiles();
             _navigationTarget.SelectedValue = NavigationTarget.Global.ToString();
             LoadNavigationSettings();
             LoadFusionButtonSettings();
@@ -79,25 +86,95 @@ namespace SpaceKatMonitor
             UpdateNavigationValues();
         }
 
+        // The target software is the first decision on this page, so it is laid
+        // out as a set of large tiles. The hidden picker stays the single source
+        // of truth for saving, enabling and the existing navigation logic.
+        private void InitializeNavigationTargetTiles()
+        {
+            UniformGrid host = Find<UniformGrid>("NavigationTargetTiles");
+            Style tileStyle = (Style)_root.Resources["TargetTile"];
+            FontFamily display = (FontFamily)_root.Resources["DisplayFont"];
+            foreach (object entry in _navigationTarget.Items)
+            {
+                ComboBoxItem item = (ComboBoxItem)entry;
+                string name, detail, mark;
+                DescribeNavigationTarget(item.Tag as string, out name, out detail, out mark);
+                Grid content = new Grid();
+                content.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                content.ColumnDefinitions.Add(new ColumnDefinition());
+                TextBlock markText = new TextBlock { Text = mark, FontFamily = display, FontSize = 14, FontWeight = FontWeights.SemiBold,
+                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                Border badge = new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(12), Child = markText };
+                content.Children.Add(badge);
+                StackPanel text = new StackPanel { Margin = new Thickness(12, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+                text.Children.Add(new TextBlock { Text = name, FontSize = 13.5, FontWeight = FontWeights.SemiBold, Foreground = Ink,
+                    TextTrimming = TextTrimming.CharacterEllipsis });
+                text.Children.Add(new TextBlock { Text = detail, FontSize = 11.5, Foreground = Muted, Margin = new Thickness(0, 2, 0, 0),
+                    TextTrimming = TextTrimming.CharacterEllipsis });
+                Grid.SetColumn(text, 1);
+                content.Children.Add(text);
+                Button tile = new Button { Style = tileStyle, Content = content, ToolTip = item.Content };
+                System.Windows.Automation.AutomationProperties.SetName(tile, item.Content as string);
+                ComboBoxItem target = item;
+                tile.Click += delegate { _navigationTarget.SelectedItem = target; };
+                _navigationTargetTiles.Add(tile);
+                _navigationTargetBadges.Add(badge);
+                _navigationTargetMarks.Add(markText);
+                host.Children.Add(tile);
+            }
+            _navigationTarget.SelectionChanged += delegate { RefreshNavigationTargetTiles(); };
+            _navigationTarget.IsEnabledChanged += delegate { RefreshNavigationTargetTiles(); };
+            RefreshNavigationTargetTiles();
+        }
+
+        private static void DescribeNavigationTarget(string tag, out string name, out string detail, out string mark)
+        {
+            switch (tag)
+            {
+                case "Blender": name = "Blender"; detail = "专用适配器"; mark = "Bl"; break;
+                case "FusionNative": name = "Fusion 360"; detail = "相机直连"; mark = "Fu"; break;
+                case "FreeCAD": name = "FreeCAD"; detail = "试用适配"; mark = "Fc"; break;
+                case "Rhino": name = "Rhino 8"; detail = "试用适配"; mark = "Rh"; break;
+                case "SolidWorks": name = "SOLIDWORKS"; detail = "六轴直连"; mark = "Sw"; break;
+                default: name = "全局适配"; detail = "自动识别软件"; mark = "全"; break;
+            }
+        }
+
+        private void RefreshNavigationTargetTiles()
+        {
+            for (int i = 0; i < _navigationTargetTiles.Count; i++)
+            {
+                bool selected = _navigationTarget.SelectedIndex == i;
+                _navigationTargetTiles[i].Tag = selected ? "on" : null;
+                _navigationTargetTiles[i].IsEnabled = _navigationTarget.IsEnabled;
+                if (selected) _navigationTargetBadges[i].SetResourceReference(Border.BackgroundProperty, "AccentFillBrush");
+                else _navigationTargetBadges[i].Background = BadgeIdle;
+                if (selected) _navigationTargetMarks[i].SetResourceReference(TextBlock.ForegroundProperty, "OnAccentBrush");
+                else _navigationTargetMarks[i].Foreground = Graphite;
+            }
+        }
+
         private void InitializeNavigationButtons()
         {
             UniformGrid host = Find<UniformGrid>("NavigationButtonsHost");
             _navigationButtonHelp = Find<TextBlock>("NavigationButtonHelp");
+            Style mini = (Style)_root.Resources["MiniButton"];
             for (int slot = 0; slot < _buttonCards.Length; slot++)
             {
                 int button = slot;
                 ButtonCard card = _buttonCards[slot];
-                var column = new StackPanel { Margin = new Thickness(4, 0, 4, 0) };
-                var label = new TextBlock { FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 4),
+                var column = new StackPanel();
+                var label = new TextBlock { FontSize = 13, FontWeight = FontWeights.SemiBold, Foreground = Ink, Margin = new Thickness(0, 0, 0, 10),
                     TextTrimming = TextTrimming.CharacterEllipsis };
                 column.Children.Add(label);
                 _navigationButtonLabels[slot] = label;
-                _navigationButtonPanels[slot] = column;
+                _navigationButtonPanels[slot] = new Border { Background = TileFill, CornerRadius = new CornerRadius(16),
+                    Padding = new Thickness(14, 12, 14, 14), Margin = new Thickness(6, 0, 6, 0), Child = column };
 
                 var binding = new Grid();
                 binding.ColumnDefinitions.Add(new ColumnDefinition());
                 binding.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                var logical = new ComboBox { Height = 30, MinWidth = 70, Margin = new Thickness(0, 0, 4, 0) };
+                var logical = new ComboBox { Height = 34, MinWidth = 70, Margin = new Thickness(0, 0, 6, 0), Background = FieldOnTile };
                 for (int number = 1; number <= 32; number++) logical.Items.Add("逻辑键 " + number);
                 logical.SelectedIndex = card.LogicalBit;
                 logical.SelectionChanged += delegate
@@ -111,14 +188,14 @@ namespace SpaceKatMonitor
                 _navigationButtonPickers[slot] = logical;
                 binding.Children.Add(logical);
 
-                var learn = new Button { Content = "学习此键", Height = 30, Padding = new Thickness(7, 0, 7, 0), Tag = card };
+                var learn = new Button { Content = "学习此键", Style = mini, Height = 34, Background = FieldOnTile, Tag = card };
                 learn.Click += BeginLearning;
                 Grid.SetColumn(learn, 1);
                 binding.Children.Add(learn);
                 _navigationLearnButtons[slot] = learn;
                 column.Children.Add(binding);
 
-                var action = new ComboBox { Height = 32, Margin = new Thickness(0, 7, 0, 0),
+                var action = new ComboBox { Height = 34, Margin = new Thickness(0, 8, 0, 0), Background = FieldOnTile,
                     Visibility = Visibility.Collapsed, ItemsSource = FusionButtonLabels,
                     SelectedIndex = Array.IndexOf(FusionButtonOptions, _fusionButtonCommands[slot]) };
                 action.SelectionChanged += delegate
@@ -127,7 +204,7 @@ namespace SpaceKatMonitor
                 };
                 _fusionButtonPickers[slot] = action;
                 column.Children.Add(action);
-                host.Children.Add(column);
+                host.Children.Add(_navigationButtonPanels[slot]);
             }
         }
 
@@ -151,7 +228,7 @@ namespace SpaceKatMonitor
             _navigationButtonHelp.Text = feedback ?? (SelectedNavigationTarget == NavigationTarget.FusionNative ?
                 "动作在 Fusion 相机直连模式生效。逻辑键与鼠标映射页共用。" :
                 "逻辑键与鼠标映射页共用。连接设备后可按下物理键学习。");
-            _navigationButtonHelp.Foreground = feedback == null ? Muted : Orange;
+            _navigationButtonHelp.Foreground = feedback == null ? Muted : Warn;
         }
 
         private NavigationTarget SelectedNavigationTarget
@@ -304,6 +381,7 @@ namespace SpaceKatMonitor
             _navigationToggle.IsEnabled = !_demo && (_navigationStartupPending ||
                 (_selected != null && (NavigationEnabled || !NavigationReleasePending)));
             _navigationToggle.Content = NavigationEnabled || _navigationStartupPending ? "停止导航" : "开启导航";
+            SetRunButton(_navigationToggle, NavigationEnabled || _navigationStartupPending);
             _navigationTarget.IsEnabled = !NavigationEnabled;
             _navigationExport.Visibility = CanExportNavigationAddIn(target) ? Visibility.Visible : Visibility.Collapsed;
             _navigationInvert[5].IsEnabled = !global;
@@ -326,7 +404,7 @@ namespace SpaceKatMonitor
             else status = _navigationMessage ?? (CanExportNavigationAddIn(target) ?
                 "尚未开启。请先在目标软件里启用适配器。" : "尚未开启。无需安装插件。");
             _navigationStatus.Text = status;
-            _navigationStatus.Foreground = NavigationReleasePending ? Orange : NavigationEnabled ? Accent : Muted;
+            _navigationStatus.Foreground = NavigationReleasePending ? Warn : NavigationEnabled ? Live : Muted;
             RenderNavigationButtonMapping();
         }
 

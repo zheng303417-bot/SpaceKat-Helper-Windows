@@ -154,7 +154,7 @@ namespace SpaceKatMonitor
                 : _mouseWheel.Input > 0 ? "上滚中" : _mouseWheel.Input < 0 ? "下滚中" : "等待 Z 偏移 · 回中停止滚动";
             _wheelStatusText.Text = state + " · " + direction +
                 (String.IsNullOrEmpty(_wheelFeedback) ? "" : " · " + _wheelFeedback);
-            _wheelStatusText.Foreground = !_demo && _mouseEnabled && _mouseWheel.Enabled ? Accent : Muted;
+            _wheelStatusText.Foreground = !_demo && _mouseEnabled && _mouseWheel.Enabled ? Live : Muted;
             _wheelDominantStatus.Text = !_wheelDominantAxisEnabled ? "主导轴过滤已关闭 · 光标和滚轮可同时操作"
                 : !_mouseWheel.Enabled ? "启用 Z 滚轮后应用主导轴过滤"
                 : !_mouseEnabled ? "主导轴过滤已开启 · 开启鼠标控制后生效"

@@ -18,7 +18,7 @@ namespace SpaceKatMonitor
             { GamepadButtons.A, GamepadButtons.B, GamepadButtons.X, GamepadButtons.Y };
         private readonly ComboBox[] _stickButtonCombos = new ComboBox[4];
         private readonly TextBlock[] _stickButtonLabels = new TextBlock[4];
-        private readonly StackPanel[] _stickButtonPanels = new StackPanel[4];
+        private readonly Border[] _stickButtonPanels = new Border[4];
         private TextBlock _stickButtonState;
         private Grid _joystickPage;
         private Button _joystickNav, _stickToggle;
@@ -394,10 +394,10 @@ namespace SpaceKatMonitor
             for (int i = 0; i < _stickButtonCombos.Length; i++)
             {
                 int index = i;
-                StackPanel card = new StackPanel { Margin = new Thickness(4, 0, 4, 0) };
-                TextBlock label = new TextBlock { FontSize = 11, Foreground = Muted, Margin = new Thickness(0, 0, 0, 4),
+                StackPanel card = new StackPanel();
+                TextBlock label = new TextBlock { FontSize = 12, Foreground = Muted, Margin = new Thickness(0, 0, 0, 8),
                     TextTrimming = TextTrimming.CharacterEllipsis };
-                ComboBox combo = new ComboBox { Height = 28, FontSize = 11 };
+                ComboBox combo = new ComboBox { Height = 34, Background = FieldOnTile };
                 foreach (GamepadButtons button in GamepadButtonModel.Options)
                     combo.Items.Add(button == GamepadButtons.None ? "无动作" : button.ToString());
                 combo.SelectedIndex = Array.IndexOf(GamepadButtonModel.Options, _stickButtonActions[i]);
@@ -414,10 +414,11 @@ namespace SpaceKatMonitor
                 };
                 _stickButtonCombos[i] = combo;
                 _stickButtonLabels[i] = label;
-                _stickButtonPanels[i] = card;
+                _stickButtonPanels[i] = new Border { Background = TileFill, CornerRadius = new CornerRadius(16),
+                    Padding = new Thickness(14, 12, 14, 14), Margin = new Thickness(6, 0, 6, 0), Child = card };
                 card.Children.Add(label);
                 card.Children.Add(combo);
-                host.Children.Add(card);
+                host.Children.Add(_stickButtonPanels[i]);
             }
             LoadStickButtonMappings();
         }
@@ -439,10 +440,10 @@ namespace SpaceKatMonitor
         {
             if (_stickStatus == null || _stickView == null) return;
             _stickToggle.Content = _joystick.Enabled ? "停止摇杆模拟" : "开启摇杆模拟";
-            _stickToggle.Background = _joystick.Enabled ? ErrorBrush : Accent;
+            SetRunButton(_stickToggle, _joystick.Enabled);
             _stickToggle.IsEnabled = _demo || _selected != null;
             _stickStatus.Text = _demo && !_joystick.Enabled ? "演示模式 · 开启后仅预览视角与摇杆偏转" : _stickMessage;
-            _stickStatus.Foreground = _joystick.Enabled ? Accent : Muted;
+            _stickStatus.Foreground = _joystick.Enabled ? Live : Muted;
             int toggleBit = StickToggleBit();
             for (int i = 0; i < _stickButtonCombos.Length; i++)
             {
@@ -456,7 +457,7 @@ namespace SpaceKatMonitor
             _stickCamera.SetView(_joystick.YawDegrees, _joystick.PitchDegrees, _joystick.HasData, _joystick.FieldOfViewDegrees);
             _stickValues.Text = "X " + _joystick.StickX.ToString("0.000", CultureInfo.InvariantCulture) + "   Y " + _joystick.StickY.ToString("0.000", CultureInfo.InvariantCulture);
             _stickIntegers.Text = "RX " + _joystick.OutputX + "   RY " + _joystick.OutputY;
-            _stickCameraText.Text = "Yaw " + _joystick.YawDegrees.ToString("0.0", CultureInfo.InvariantCulture) + "° · Pitch " + _joystick.PitchDegrees.ToString("0.0", CultureInfo.InvariantCulture) + "° · FOV " + _joystick.FieldOfViewDegrees.ToString("0.0", CultureInfo.InvariantCulture) + "° · 位置 (0,0,0) · Roll 0°";
+            _stickCameraText.Text = "偏航 " + _joystick.YawDegrees.ToString("0.0", CultureInfo.InvariantCulture) + "°   ·   俯仰 " + _joystick.PitchDegrees.ToString("0.0", CultureInfo.InvariantCulture) + "°   ·   视野 " + _joystick.FieldOfViewDegrees.ToString("0.0", CultureInfo.InvariantCulture) + "°";
             _stickGainXText.Text = "X 增益 " + _joystick.GainX.ToString("0.0", CultureInfo.InvariantCulture);
             _stickGainYText.Text = "Y 增益 " + _joystick.GainY.ToString("0.0", CultureInfo.InvariantCulture);
             _stickDeadZoneText.Text = "径向死区 " + _joystick.DeadZone.ToString("0.00", CultureInfo.InvariantCulture);
