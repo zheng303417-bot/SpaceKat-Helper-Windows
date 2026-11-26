@@ -14,7 +14,7 @@ SpaceKat Mini II 和 Mini II Lite 的 Windows 上位机。支持 USB 和蓝牙�
 
 解压 Windows 便携包后运行「启动上位机.cmd」或同目录的 SpaceKat 小助手。首次运行会载入内置配置。无需设备时，可以运行「演示模式.cmd」查看界面。公开版本见 [Releases](https://github.com/zheng303417-bot/SpaceKat-Helper-Windows/releases)。
 
-适用 Windows 10/11 和 .NET Framework 4.8。Fusion 首次使用时，在「实用程序 → 附加模块」中添加并运行便携包内的 `navigation/fusion/SpaceKatFusion` 文件夹，然后在小助手选「Fusion 360 · 相机直连」并开启导航。Fusion 可以保持打开，导航无需 3DxWare。系统虚拟手柄输出需要电脑上已有可用的 ViGEmBus。左侧「停止并释放」与 `Ctrl+Alt+F8` 可停止当前模拟。
+适用 Windows 10/11 和 .NET Framework 4.8。Fusion 首次使用时，在「实用程序 → 附加模块」中添加并运行便携包内的 `navigation/fusion/SpaceKatFusion` 文件夹，然后在小助手的「3D 导航」页选「Fusion 360」（相机直连）并开启导航。Fusion 可以保持打开，导航无需 3DxWare。系统虚拟手柄输出需要电脑上已有可用的 ViGEmBus。左侧「停止并释放」与 `Ctrl+Alt+F8` 可停止当前模拟。
 
 ## 从源码构建
 

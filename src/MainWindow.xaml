@@ -1,184 +1,623 @@
 <UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Background="#E7EBF2" FontFamily="Segoe UI Variable Text, Microsoft YaHei UI"
-             FontSize="13" Foreground="#15233B" UseLayoutRounding="True" SnapsToDevicePixels="True">
+             Background="#E9E6E0" FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"
+             FontSize="13" Foreground="#1F1E1C" UseLayoutRounding="True" SnapsToDevicePixels="True"
+             TextOptions.TextFormattingMode="Display">
   <UserControl.Resources>
-    <SolidColorBrush x:Key="AccentBrush" Color="#008F87"/>
-    <SolidColorBrush x:Key="SidebarBrush" Color="#17383F"/>
-    <SolidColorBrush x:Key="AccentTintBrush" Color="#E8F6F2"/>
-    <SolidColorBrush x:Key="AccentEdgeBrush" Color="#64B6A8"/>
-    <SolidColorBrush x:Key="InkBrush" Color="#15233B"/>
-    <SolidColorBrush x:Key="MutedBrush" Color="#505F76"/>
-    <SolidColorBrush x:Key="LineBrush" Color="#DCE3EE"/>
-    <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="PanelTintBrush" Color="#F0F3F8"/>
-    <SolidColorBrush x:Key="DarkPanelBrush" Color="#162438"/>
-    <SolidColorBrush x:Key="RailDotBrush" Color="#7689A4"/>
-    <SolidColorBrush x:Key="RailIdleBrush" Color="Transparent"/>
-    <SolidColorBrush x:Key="RailTextBrush" Color="#34465F"/>
-    <SolidColorBrush x:Key="PressedBrush" Color="#CAD5E5"/>
-    <SolidColorBrush x:Key="InputLineBrush" Color="#CDD7E5"/>
-    <SolidColorBrush x:Key="ControlDisabledBrush" Color="#EBEFF5"/>
+    <!-- Typefaces -->
+    <FontFamily x:Key="DisplayFont">Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="NumberFont">Segoe UI Variable Display, Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, Microsoft YaHei UI</FontFamily>
 
-    <Style x:Key="PanelStyle" TargetType="Border">
-      <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="12"/>
-      <Setter Property="Padding" Value="16"/>
+    <!-- Theme colours (replaced at runtime by ApplyTheme) -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#F2661B"/>
+    <SolidColorBrush x:Key="AccentDeepBrush" Color="#DC5410"/>
+    <SolidColorBrush x:Key="AccentTintBrush" Color="#FDEDE3"/>
+    <SolidColorBrush x:Key="AccentEdgeBrush" Color="#F6B08A"/>
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#B4480C"/>
+    <SolidColorBrush x:Key="OnAccentBrush" Color="#1F1E1C"/>
+    <SolidColorBrush x:Key="OnGraphiteBrush" Color="#FFFFFF"/>
+    <LinearGradientBrush x:Key="AccentFillBrush" StartPoint="0,0" EndPoint="0,1">
+      <GradientStop Color="#FF7A33" Offset="0"/>
+      <GradientStop Color="#EC5C12" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Ceramic surfaces and ink -->
+    <SolidColorBrush x:Key="WindowBrush" Color="#E9E6E0"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#FBFAF7"/>
+    <SolidColorBrush x:Key="TileBrush" Color="#F4F2EE"/>
+    <SolidColorBrush x:Key="TileHoverBrush" Color="#EEEBE6"/>
+    <SolidColorBrush x:Key="FieldBrush" Color="#F2EFEB"/>
+    <SolidColorBrush x:Key="FieldHoverBrush" Color="#ECE8E2"/>
+    <SolidColorBrush x:Key="LineBrush" Color="#E7E3DC"/>
+    <SolidColorBrush x:Key="LineStrongBrush" Color="#D9D4CB"/>
+    <SolidColorBrush x:Key="InkBrush" Color="#1F1E1C"/>
+    <SolidColorBrush x:Key="BodyBrush" Color="#4A4640"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="#6B665E"/>
+    <SolidColorBrush x:Key="DimBrush" Color="#A39D94"/>
+    <SolidColorBrush x:Key="GraphiteBrush" Color="#2B2A27"/>
+    <SolidColorBrush x:Key="LiveBrush" Color="#2FAE6B"/>
+    <SolidColorBrush x:Key="LiveTextBrush" Color="#17703F"/>
+    <SolidColorBrush x:Key="WarnTextBrush" Color="#8F530A"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#CF4A3C"/>
+    <SolidColorBrush x:Key="TerminalBrush" Color="#2B2A27"/>
+    <SolidColorBrush x:Key="TerminalInkBrush" Color="#EFEBE4"/>
+    <SolidColorBrush x:Key="TerminalMutedBrush" Color="#A9A296"/>
+    <LinearGradientBrush x:Key="WellBrush" StartPoint="0,0" EndPoint="0,1">
+      <GradientStop Color="#F0EDE8" Offset="0"/>
+      <GradientStop Color="#E8E4DD" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="WellEdgeBrush" StartPoint="0,0" EndPoint="0,1">
+      <GradientStop Color="#1E3C2D1E" Offset="0"/>
+      <GradientStop Color="#0A3C2D1E" Offset="0.25"/>
+      <GradientStop Color="#063C2D1E" Offset="1"/>
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ScrollFadeBrush" StartPoint="0,0" EndPoint="0,1">
+      <GradientStop Color="#FFE9E6E0" Offset="0"/>
+      <GradientStop Color="#00E9E6E0" Offset="1"/>
+    </LinearGradientBrush>
+
+    <!-- Depth -->
+    <DropShadowEffect x:Key="CardShadow" BlurRadius="30" ShadowDepth="6" Direction="270" Opacity="0.075" Color="#3C2D1E" RenderingBias="Performance"/>
+    <DropShadowEffect x:Key="LiftShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Opacity="0.11" Color="#3C2D1E" RenderingBias="Performance"/>
+    <DropShadowEffect x:Key="KnobShadow" BlurRadius="6" ShadowDepth="1.5" Direction="270" Opacity="0.22" Color="#3C2D1E" RenderingBias="Performance"/>
+
+    <!-- Type -->
+    <Style x:Key="H1" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="{StaticResource DisplayFont}"/>
+      <Setter Property="FontSize" Value="30"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
     </Style>
-    <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="15"/>
+    <Style x:Key="H2" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="{StaticResource DisplayFont}"/>
+      <Setter Property="FontSize" Value="15.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+    <Style x:Key="H3" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="13"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
     </Style>
-    <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+    <Style x:Key="Sub" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="11.5"/>
+      <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+    <Style x:Key="Body" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="Foreground" Value="{StaticResource BodyBrush}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="LineHeight" Value="20"/>
+    </Style>
+    <Style x:Key="Caption" TargetType="TextBlock">
       <Setter Property="FontSize" Value="12"/>
       <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
+      <Setter Property="LineHeight" Value="18"/>
+    </Style>
+    <Style x:Key="FieldLabel" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+      <Setter Property="Margin" Value="0,0,0,7"/>
+      <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    </Style>
+    <Style x:Key="StatusCaption" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+      <Style.Triggers>
+        <Trigger Property="Text" Value="">
+          <Setter Property="Visibility" Value="Collapsed"/>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="GroupTitle" TargetType="TextBlock">
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="Margin" Value="0,0,0,12"/>
     </Style>
 
-    <Style TargetType="Button">
-      <Setter Property="Height" Value="36"/>
-      <Setter Property="Padding" Value="12,0"/>
-      <Setter Property="Background" Value="{StaticResource PanelTintBrush}"/>
-      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
+    <!-- Surfaces -->
+    <Style x:Key="Card" TargetType="ContentControl">
+      <Setter Property="Padding" Value="20,18"/>
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ContentControl">
+            <Grid>
+              <Border CacheMode="BitmapCache">
+                <Border CornerRadius="20" Background="{StaticResource CardBrush}" Effect="{StaticResource CardShadow}"/>
+              </Border>
+              <Border CornerRadius="20" Background="{StaticResource CardBrush}" BorderBrush="#0B3C2D1E" BorderThickness="1"
+                      Padding="{TemplateBinding Padding}">
+                <ContentPresenter/>
+              </Border>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="Tile" TargetType="Border">
+      <Setter Property="Background" Value="{StaticResource TileBrush}"/>
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="Padding" Value="16,14"/>
+    </Style>
+    <Style x:Key="Well" TargetType="Border">
+      <Setter Property="Background" Value="{StaticResource WellBrush}"/>
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="ClipToBounds" Value="True"/>
+    </Style>
+    <Style x:Key="WellRim" TargetType="Border">
+      <Setter Property="CornerRadius" Value="14"/>
+      <Setter Property="BorderBrush" Value="{StaticResource WellEdgeBrush}"/>
       <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="IsHitTestVisible" Value="False"/>
+    </Style>
+    <Style x:Key="Rule" TargetType="Border">
+      <Setter Property="Height" Value="1"/>
+      <Setter Property="Background" Value="{StaticResource LineBrush}"/>
+    </Style>
+
+    <!-- Buttons -->
+    <Style TargetType="Button">
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="Padding" Value="15,0"/>
+      <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize" Value="12.5"/>
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Button">
-            <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="7" Padding="{TemplateBinding Padding}">
-              <Grid>
-                <Border x:Name="PointerWash" Background="Transparent" Margin="-2"/>
-                <ContentPresenter RecognizesAccessKey="True" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-              </Grid>
-            </Border>
+            <Grid x:Name="Root">
+              <Border x:Name="Face" CornerRadius="17" Background="{TemplateBinding Background}"/>
+              <Border x:Name="Wash" CornerRadius="17" Background="Transparent"/>
+              <Border x:Name="Ring" CornerRadius="19" Margin="-3" BorderThickness="2" BorderBrush="Transparent"/>
+              <ContentPresenter Margin="{TemplateBinding Padding}" RecognizesAccessKey="True"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+            </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="PointerWash" Property="Background" Value="#150B2649"/>
+                <Setter TargetName="Wash" Property="Background" Value="#0D3C2D1E"/>
               </Trigger>
               <Trigger Property="IsPressed" Value="True">
-                <Setter TargetName="PointerWash" Property="Background" Value="#280E2A42"/>
-              </Trigger>
-              <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.48"/>
+                <Setter TargetName="Wash" Property="Background" Value="#1C3C2D1E"/>
               </Trigger>
               <Trigger Property="IsKeyboardFocused" Value="True">
-                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                <Setter TargetName="ButtonBorder" Property="BorderThickness" Value="2"/>
+                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Root" Property="Opacity" Value="0.42"/>
               </Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
     </Style>
+    <!-- Raised keys keep their soft shadow in a cached layer, so live updates never re-blur it. -->
+    <ControlTemplate x:Key="LiftedButtonTemplate" TargetType="Button">
+      <Grid x:Name="Root">
+        <Border CacheMode="BitmapCache">
+          <Border CornerRadius="20" Background="{TemplateBinding Background}" Effect="{StaticResource LiftShadow}"/>
+        </Border>
+        <Border x:Name="Wash" CornerRadius="20" Background="Transparent"/>
+        <Border x:Name="Ring" CornerRadius="22" Margin="-3" BorderThickness="2" BorderBrush="Transparent"/>
+        <ContentPresenter Margin="{TemplateBinding Padding}" RecognizesAccessKey="True"
+                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Grid>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter TargetName="Wash" Property="Background" Value="#123C2D1E"/>
+        </Trigger>
+        <Trigger Property="IsPressed" Value="True">
+          <Setter TargetName="Wash" Property="Background" Value="#243C2D1E"/>
+        </Trigger>
+        <Trigger Property="IsKeyboardFocused" Value="True">
+          <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
+        </Trigger>
+        <Trigger Property="IsEnabled" Value="False">
+          <Setter TargetName="Root" Property="Opacity" Value="0.42"/>
+        </Trigger>
+      </ControlTemplate.Triggers>
+    </ControlTemplate>
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-      <Setter Property="Background" Value="{StaticResource DarkPanelBrush}"/>
-      <Setter Property="Foreground" Value="White"/>
-      <Setter Property="BorderBrush" Value="{StaticResource DarkPanelBrush}"/>
+      <Setter Property="Height" Value="38"/>
+      <Setter Property="Padding" Value="20,0"/>
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Template" Value="{StaticResource LiftedButtonTemplate}"/>
     </Style>
-    <Style x:Key="NavigationButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+    <Style x:Key="MiniButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Height" Value="30"/>
+      <Setter Property="Padding" Value="13,0"/>
+      <Setter Property="FontSize" Value="11.5"/>
+      <Setter Property="Foreground" Value="#4D4943"/>
+    </Style>
+    <Style x:Key="PillButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
       <Setter Property="Height" Value="40"/>
-      <Setter Property="Padding" Value="11,0"/>
-      <Setter Property="Background" Value="{StaticResource RailIdleBrush}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource RailIdleBrush}"/>
-      <Setter Property="Foreground" Value="{StaticResource RailTextBrush}"/>
-      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Padding" Value="18,0"/>
+      <Setter Property="Background" Value="{StaticResource CardBrush}"/>
+      <Setter Property="Template" Value="{StaticResource LiftedButtonTemplate}"/>
+    </Style>
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource PillButton}">
+      <Setter Property="Width" Value="40"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Foreground" Value="{StaticResource MutedBrush}"/>
+    </Style>
+    <Style x:Key="GlyphStyle" TargetType="Path">
+      <Setter Property="Width" Value="16"/>
+      <Setter Property="Height" Value="16"/>
+      <Setter Property="Stretch" Value="Uniform"/>
+      <Setter Property="StrokeThickness" Value="1.6"/>
+      <Setter Property="StrokeStartLineCap" Value="Round"/>
+      <Setter Property="StrokeEndLineCap" Value="Round"/>
+      <Setter Property="StrokeLineJoin" Value="Round"/>
+      <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+    </Style>
+
+    <!-- Sidebar navigation -->
+    <Style x:Key="NavigationButton" TargetType="Button">
+      <Setter Property="Height" Value="44"/>
+      <Setter Property="Padding" Value="14,0"/>
       <Setter Property="Margin" Value="0,0,0,4"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#5E5A53"/>
+      <Setter Property="FontSize" Value="13.5"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Grid>
+              <Border x:Name="Lift" Opacity="0" CacheMode="BitmapCache">
+                <Border CornerRadius="14" Background="{StaticResource CardBrush}" Effect="{StaticResource LiftShadow}"/>
+              </Border>
+              <Border x:Name="Face" CornerRadius="14" Background="{TemplateBinding Background}"/>
+              <Border x:Name="Ring" CornerRadius="16" Margin="-2" BorderThickness="2" BorderBrush="Transparent"/>
+              <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="#0B3C2D1E"/>
+              </Trigger>
+              <Trigger Property="Tag" Value="on">
+                <Setter TargetName="Lift" Property="Opacity" Value="1"/>
+                <Setter TargetName="Face" Property="Background" Value="{StaticResource CardBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
     </Style>
     <Style x:Key="NavIconStyle" TargetType="Path">
       <Setter Property="Width" Value="18"/>
-      <Setter Property="Height" Value="17"/>
-      <Setter Property="Margin" Value="0,0,10,0"/>
+      <Setter Property="Height" Value="18"/>
+      <Setter Property="Margin" Value="0,0,13,0"/>
       <Setter Property="Stretch" Value="Uniform"/>
-      <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
-      <Setter Property="StrokeThickness" Value="1.5"/>
+      <Setter Property="StrokeThickness" Value="1.6"/>
       <Setter Property="StrokeStartLineCap" Value="Round"/>
       <Setter Property="StrokeEndLineCap" Value="Round"/>
       <Setter Property="StrokeLineJoin" Value="Round"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"/>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="on">
+          <Setter Property="Stroke" Value="{DynamicResource AccentBrush}"/>
+        </DataTrigger>
+      </Style.Triggers>
     </Style>
 
-    <Style TargetType="ComboBox">
-      <Setter Property="Height" Value="36"/>
-      <Setter Property="Padding" Value="9,0,28,0"/>
-      <Setter Property="VerticalContentAlignment" Value="Center"/>
-      <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+    <!-- Emergency stop: a physical round key -->
+    <Style x:Key="StopKnob" TargetType="Button">
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
-      <Setter Property="BorderBrush" Value="{StaticResource InputLineBrush}"/>
       <Setter Property="Template">
         <Setter.Value>
-          <ControlTemplate TargetType="ComboBox">
-            <Grid>
-              <Border x:Name="ComboFrame" Background="{TemplateBinding Background}"
-                      BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="7"/>
-              <ToggleButton Focusable="False" ClickMode="Press" Background="Transparent"
-                            IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
-                <ToggleButton.Template>
-                  <ControlTemplate TargetType="ToggleButton">
-                    <Border Background="Transparent">
-                      <Path Data="M 1,1 L 5,5 L 9,1" Stroke="{StaticResource MutedBrush}" StrokeThickness="1.5"
-                            StrokeLineJoin="Round" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                    </Border>
-                  </ControlTemplate>
-                </ToggleButton.Template>
-              </ToggleButton>
-              <ContentPresenter IsHitTestVisible="False" Margin="10,0,27,0" VerticalAlignment="Center"
-                                Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
-              <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False">
-                <Border Margin="0,4,0,0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource InputLineBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="4"
-                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
-                  <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
-                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
-                  </ScrollViewer>
-                </Border>
-              </Popup>
+          <ControlTemplate TargetType="Button">
+            <Grid Background="Transparent">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+              <Grid Width="56" Height="56">
+                <Ellipse x:Name="Bezel">
+                  <Ellipse.Fill>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                      <GradientStop Color="#E3DED6" Offset="0"/>
+                      <GradientStop Color="#EFEBE5" Offset="1"/>
+                    </LinearGradientBrush>
+                  </Ellipse.Fill>
+                </Ellipse>
+                <Ellipse x:Name="Halo" Margin="3" StrokeThickness="2" Stroke="Transparent"/>
+                <Grid x:Name="Cap" Width="44" Height="44">
+                  <Border CacheMode="BitmapCache"><Ellipse Effect="{StaticResource KnobShadow}">
+                    <Ellipse.Fill>
+                      <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Color="#FFFFFF" Offset="0"/>
+                        <GradientStop Color="#F0ECE6" Offset="1"/>
+                      </LinearGradientBrush>
+                    </Ellipse.Fill>
+                  </Ellipse></Border>
+                  <Rectangle x:Name="Mark" Width="12" Height="12" RadiusX="2.5" RadiusY="2.5" Fill="{StaticResource DangerBrush}"/>
+                </Grid>
+              </Grid>
+              <StackPanel Grid.Column="1" Margin="13,0,0,0" VerticalAlignment="Center">
+                <ContentPresenter x:Name="Label" TextElement.FontWeight="SemiBold" TextElement.FontSize="13"
+                                  TextElement.Foreground="{StaticResource DangerBrush}"/>
+                <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                  <Border Background="#F1EEE9" BorderBrush="#DDD7CE" BorderThickness="0,0,0,1" CornerRadius="5" Padding="6,1,6,2" Margin="0,0,4,0">
+                    <TextBlock Text="Ctrl" FontSize="10.5" Foreground="{StaticResource MutedBrush}"/>
+                  </Border>
+                  <Border Background="#F1EEE9" BorderBrush="#DDD7CE" BorderThickness="0,0,0,1" CornerRadius="5" Padding="6,1,6,2" Margin="0,0,4,0">
+                    <TextBlock Text="Alt" FontSize="10.5" Foreground="{StaticResource MutedBrush}"/>
+                  </Border>
+                  <Border Background="#F1EEE9" BorderBrush="#DDD7CE" BorderThickness="0,0,0,1" CornerRadius="5" Padding="6,1,6,2">
+                    <TextBlock Text="F8" FontSize="10.5" Foreground="{StaticResource MutedBrush}"/>
+                  </Border>
+                </StackPanel>
+              </StackPanel>
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="ComboFrame" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
+                <Setter TargetName="Halo" Property="Stroke" Value="#33CF4A3C"/>
               </Trigger>
-              <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                <Setter TargetName="ComboFrame" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
-                <Setter TargetName="ComboFrame" Property="BorderThickness" Value="2"/>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Cap" Property="RenderTransform">
+                  <Setter.Value><TranslateTransform Y="1.2"/></Setter.Value>
+                </Setter>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Halo" Property="Stroke" Value="{DynamicResource AccentEdgeBrush}"/>
               </Trigger>
               <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="ComboFrame" Property="Background" Value="{StaticResource ControlDisabledBrush}"/>
+                <Setter TargetName="Mark" Property="Fill" Value="#CFC8BD"/>
+                <Setter TargetName="Label" Property="TextElement.Foreground" Value="{StaticResource DimBrush}"/>
               </Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
     </Style>
+
+    <!-- 3D navigation target tiles -->
+    <Style x:Key="TargetTile" TargetType="Button">
+      <Setter Property="Height" Value="64"/>
+      <Setter Property="Margin" Value="6"/>
+      <Setter Property="Padding" Value="12,0,14,0"/>
+      <Setter Property="Background" Value="{StaticResource TileBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Grid x:Name="Root">
+              <Border x:Name="Lift" Opacity="0" CacheMode="BitmapCache">
+                <Border CornerRadius="16" Background="{StaticResource CardBrush}" Effect="{StaticResource LiftShadow}"/>
+              </Border>
+              <Border x:Name="Face" CornerRadius="16" Background="{TemplateBinding Background}" BorderThickness="2" BorderBrush="Transparent"/>
+              <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Face" Property="Background" Value="{StaticResource TileHoverBrush}"/>
+              </Trigger>
+              <Trigger Property="Tag" Value="on">
+                <Setter TargetName="Lift" Property="Opacity" Value="1"/>
+                <Setter TargetName="Face" Property="Background" Value="{StaticResource CardBrush}"/>
+                <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
+              </Trigger>
+              <MultiTrigger>
+                <MultiTrigger.Conditions>
+                  <Condition Property="IsEnabled" Value="False"/>
+                  <Condition Property="Tag" Value="{x:Null}"/>
+                </MultiTrigger.Conditions>
+                <Setter TargetName="Root" Property="Opacity" Value="0.42"/>
+              </MultiTrigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="ThemeSwatch" TargetType="Button">
+      <Setter Property="Width" Value="34"/>
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="Margin" Value="0,0,12,0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Grid>
+              <Ellipse x:Name="Ring" StrokeThickness="2" Stroke="Transparent"/>
+              <Border Margin="5" CacheMode="BitmapCache"><Ellipse Fill="{TemplateBinding Background}" Effect="{StaticResource KnobShadow}"/></Border>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Ring" Property="Stroke" Value="{StaticResource LineStrongBrush}"/>
+              </Trigger>
+              <Trigger Property="Tag" Value="on">
+                <Setter TargetName="Ring" Property="Stroke" Value="{StaticResource InkBrush}"/>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Ring" Property="Stroke" Value="{DynamicResource AccentEdgeBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Fields -->
+    <Style TargetType="ComboBox">
+      <Setter Property="Height" Value="36"/>
+      <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ComboBox">
+            <Grid x:Name="Root">
+              <Border x:Name="Frame" Background="{TemplateBinding Background}" CornerRadius="12" BorderThickness="1.5" BorderBrush="Transparent"/>
+              <ToggleButton Focusable="False" ClickMode="Press"
+                            IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                <ToggleButton.Template>
+                  <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="Transparent">
+                      <Path Data="M 1,1 L 5,5 L 9,1" Stroke="{StaticResource MutedBrush}" StrokeThickness="1.6" StrokeStartLineCap="Round"
+                            StrokeEndLineCap="Round" StrokeLineJoin="Round" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,1,13,0"/>
+                    </Border>
+                  </ControlTemplate>
+                </ToggleButton.Template>
+              </ToggleButton>
+              <ContentPresenter IsHitTestVisible="False" Margin="13,0,30,0" VerticalAlignment="Center"
+                                Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
+              <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True"
+                     Focusable="False" PopupAnimation="Fade" VerticalOffset="-2" HorizontalOffset="-10">
+                <Grid Margin="10,6,10,16" MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                  <Border CornerRadius="14" Background="{StaticResource CardBrush}" Effect="{StaticResource LiftShadow}"/>
+                  <Border CornerRadius="14" Background="{StaticResource CardBrush}" BorderBrush="#103C2D1E" BorderThickness="1" Padding="5">
+                    <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto" CanContentScroll="True">
+                      <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
+                    </ScrollViewer>
+                  </Border>
+                </Grid>
+              </Popup>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Frame" Property="Background" Value="{StaticResource FieldHoverBrush}"/>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Root" Property="Opacity" Value="0.5"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="BareCombo" TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Height" Value="34"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="FontSize" Value="13"/>
+    </Style>
     <Style TargetType="ComboBoxItem">
-      <Setter Property="Padding" Value="8,7"/>
+      <Setter Property="Padding" Value="11,8"/>
+      <Setter Property="Margin" Value="0,1"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="FontWeight" Value="Normal"/>
+      <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="ComboBoxItem">
-            <Border x:Name="OptionSurface" CornerRadius="4" Padding="{TemplateBinding Padding}" Background="Transparent">
+            <Border x:Name="Option" CornerRadius="9" Padding="{TemplateBinding Padding}" Background="Transparent">
               <ContentPresenter/>
             </Border>
             <ControlTemplate.Triggers>
               <Trigger Property="IsHighlighted" Value="True">
-                <Setter TargetName="OptionSurface" Property="Background" Value="{StaticResource PanelTintBrush}"/>
+                <Setter TargetName="Option" Property="Background" Value="{StaticResource TileHoverBrush}"/>
               </Trigger>
               <Trigger Property="IsSelected" Value="True">
-                <Setter TargetName="OptionSurface" Property="Background" Value="{DynamicResource AccentTintBrush}"/>
+                <Setter TargetName="Option" Property="Background" Value="{DynamicResource AccentTintBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
               </Trigger>
               <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="OptionSurface" Property="Opacity" Value="0.48"/>
+                <Setter TargetName="Option" Property="Opacity" Value="0.45"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style TargetType="TextBox">
+      <Setter Property="Background" Value="{StaticResource FieldBrush}"/>
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="6,0"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TextBox">
+            <Border x:Name="Frame" Background="{TemplateBinding Background}" CornerRadius="11" BorderThickness="1.5" BorderBrush="Transparent">
+              <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style TargetType="CheckBox">
+      <Setter Property="Foreground" Value="{StaticResource BodyBrush}"/>
+      <Setter Property="FontSize" Value="12.5"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="CheckBox">
+            <Grid x:Name="Root" Background="Transparent">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+              <Grid Width="18" Height="18" VerticalAlignment="Center">
+                <Border x:Name="Box" CornerRadius="5.5" Background="White" BorderBrush="#CFC8BD" BorderThickness="1.5"/>
+                <Path x:Name="Check" Data="M 4.6,9.4 L 7.7,12.4 L 13.4,6.2" Stroke="White" StrokeThickness="2"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Visibility="Collapsed"/>
+              </Grid>
+              <ContentPresenter Grid.Column="1" Margin="9,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True"/>
+            </Grid>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Box" Property="Background" Value="{DynamicResource AccentBrush}"/>
+                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                <Setter TargetName="Check" Property="Visibility" Value="Visible"/>
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AccentDeepBrush}"/>
+                <Setter TargetName="Box" Property="BorderThickness" Value="2"/>
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter TargetName="Root" Property="Opacity" Value="0.42"/>
               </Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
@@ -200,40 +639,206 @@
       </Setter>
     </Style>
     <Style TargetType="Slider">
-      <Setter Property="MinHeight" Value="22"/>
+      <Setter Property="MinHeight" Value="24"/>
+      <Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="Slider">
-            <Grid Background="Transparent">
-              <Track x:Name="PART_Track" VerticalAlignment="Center" Height="22" Minimum="{TemplateBinding Minimum}"
+            <Grid x:Name="Root" Background="Transparent">
+              <Track x:Name="PART_Track" VerticalAlignment="Center" Height="24" Minimum="{TemplateBinding Minimum}"
                      Maximum="{TemplateBinding Maximum}" IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
                      Value="{Binding Value, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                 <Track.DecreaseRepeatButton>
                   <RepeatButton Command="Slider.DecreaseLarge" Style="{StaticResource SliderTrackButton}" Background="{DynamicResource AccentBrush}"/>
                 </Track.DecreaseRepeatButton>
                 <Track.Thumb>
-                  <Thumb Width="16" Height="16">
+                  <Thumb Width="20" Height="20">
                     <Thumb.Template>
                       <ControlTemplate TargetType="Thumb">
-                        <Border CornerRadius="8" Background="White" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="2"/>
+                        <Grid>
+                          <Ellipse x:Name="Halo" Margin="-4" Fill="Transparent"/>
+                          <Border CacheMode="BitmapCache"><Ellipse Fill="White" Stroke="#DCD6CC" StrokeThickness="1" Effect="{StaticResource KnobShadow}"/></Border>
+                          <Ellipse Width="6" Height="6" Fill="{DynamicResource AccentBrush}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                          <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Halo" Property="Fill" Value="{DynamicResource AccentTintBrush}"/>
+                          </Trigger>
+                          <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="Halo" Property="Fill" Value="{DynamicResource AccentTintBrush}"/>
+                          </Trigger>
+                        </ControlTemplate.Triggers>
                       </ControlTemplate>
                     </Thumb.Template>
                   </Thumb>
                 </Track.Thumb>
                 <Track.IncreaseRepeatButton>
-                  <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource SliderTrackButton}" Background="{StaticResource InputLineBrush}"/>
+                  <RepeatButton Command="Slider.IncreaseLarge" Style="{StaticResource SliderTrackButton}" Background="#E3DED6"/>
                 </Track.IncreaseRepeatButton>
               </Track>
-              <Border x:Name="SliderFocus" BorderThickness="1" BorderBrush="Transparent" CornerRadius="6" IsHitTestVisible="False"/>
+              <Border x:Name="Focus" BorderThickness="1.5" BorderBrush="Transparent" CornerRadius="12" Margin="-6,-2" IsHitTestVisible="False"/>
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                <Setter TargetName="SliderFocus" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                <Setter TargetName="Focus" Property="BorderBrush" Value="{DynamicResource AccentEdgeBrush}"/>
               </Trigger>
               <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="PART_Track" Property="Opacity" Value="0.46"/>
+                <Setter TargetName="Root" Property="Opacity" Value="0.42"/>
               </Trigger>
             </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style TargetType="ProgressBar">
+      <Setter Property="Height" Value="6"/>
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ProgressBar">
+            <Grid>
+              <Border x:Name="PART_Track" CornerRadius="3" Background="#E6E1D9"/>
+              <Border x:Name="PART_Indicator" CornerRadius="3" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left"/>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- Scrolling -->
+    <Style x:Key="ScrollPage" TargetType="RepeatButton">
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="IsTabStop" Value="False"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style x:Key="ScrollThumb" TargetType="Thumb">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Thumb">
+            <Border x:Name="Bar" CornerRadius="3" Background="#D3CDC3" Margin="1"/>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bar" Property="Background" Value="#BCB5A9"/></Trigger>
+              <Trigger Property="IsDragging" Value="True"><Setter TargetName="Bar" Property="Background" Value="#A59E92"/></Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+    <Style TargetType="ScrollBar">
+      <Setter Property="Width" Value="8"/>
+      <Setter Property="MinWidth" Value="8"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ScrollBar">
+            <Grid Background="Transparent">
+              <Track x:Name="PART_Track" IsDirectionReversed="True">
+                <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageUpCommand" Style="{StaticResource ScrollPage}"/></Track.DecreaseRepeatButton>
+                <Track.Thumb><Thumb Style="{StaticResource ScrollThumb}" MinHeight="36"/></Track.Thumb>
+                <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageDownCommand" Style="{StaticResource ScrollPage}"/></Track.IncreaseRepeatButton>
+              </Track>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="Orientation" Value="Horizontal">
+          <Setter Property="Width" Value="Auto"/>
+          <Setter Property="MinWidth" Value="0"/>
+          <Setter Property="Height" Value="8"/>
+          <Setter Property="MinHeight" Value="8"/>
+          <Setter Property="Template">
+            <Setter.Value>
+              <ControlTemplate TargetType="ScrollBar">
+                <Grid Background="Transparent">
+                  <Track x:Name="PART_Track" IsDirectionReversed="False">
+                    <Track.DecreaseRepeatButton><RepeatButton Command="ScrollBar.PageLeftCommand" Style="{StaticResource ScrollPage}"/></Track.DecreaseRepeatButton>
+                    <Track.Thumb><Thumb Style="{StaticResource ScrollThumb}" MinWidth="36"/></Track.Thumb>
+                    <Track.IncreaseRepeatButton><RepeatButton Command="ScrollBar.PageRightCommand" Style="{StaticResource ScrollPage}"/></Track.IncreaseRepeatButton>
+                  </Track>
+                </Grid>
+              </ControlTemplate>
+            </Setter.Value>
+          </Setter>
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="PageScroller" TargetType="ScrollViewer">
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+
+    <Style TargetType="Expander">
+      <Setter Property="Foreground" Value="{StaticResource InkBrush}"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Expander">
+            <DockPanel>
+              <ToggleButton DockPanel.Dock="Top" Cursor="Hand" FocusVisualStyle="{x:Null}"
+                            Foreground="{TemplateBinding Foreground}" Content="{TemplateBinding Header}"
+                            IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                <ToggleButton.Template>
+                  <ControlTemplate TargetType="ToggleButton">
+                    <Border Background="Transparent" Padding="0,9">
+                      <StackPanel Orientation="Horizontal">
+                        <Grid Width="24" Height="24">
+                          <Ellipse x:Name="Disc" Fill="{TemplateBinding Foreground}" Opacity="0.08"/>
+                          <Path x:Name="Chevron" Data="M 0,0 L 4,4 L 0,8" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6"
+                                StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5"/>
+                        </Grid>
+                        <ContentPresenter Margin="11,0,0,0" VerticalAlignment="Center" TextElement.FontWeight="SemiBold"/>
+                      </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                      <Trigger Property="IsChecked" Value="True">
+                        <Setter TargetName="Chevron" Property="RenderTransform">
+                          <Setter.Value><RotateTransform Angle="90"/></Setter.Value>
+                        </Setter>
+                      </Trigger>
+                      <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="Disc" Property="Opacity" Value="0.14"/>
+                      </Trigger>
+                      <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter TargetName="Disc" Property="Opacity" Value="0.2"/>
+                      </Trigger>
+                    </ControlTemplate.Triggers>
+                  </ControlTemplate>
+                </ToggleButton.Template>
+              </ToggleButton>
+              <ContentPresenter x:Name="Body" Visibility="Collapsed"/>
+            </DockPanel>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsExpanded" Value="True">
+                <Setter TargetName="Body" Property="Visibility" Value="Visible"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style TargetType="ToolTip">
+      <Setter Property="OverridesDefaultStyle" Value="True"/>
+      <Setter Property="HasDropShadow" Value="False"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ToolTip">
+            <Border Background="{StaticResource GraphiteBrush}" CornerRadius="9" Padding="11,7" MaxWidth="340">
+              <ContentPresenter TextElement.Foreground="#F4F1EC" TextElement.FontSize="12">
+                <ContentPresenter.Resources>
+                  <Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/></Style>
+                </ContentPresenter.Resources>
+              </ContentPresenter>
+            </Border>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
@@ -242,55 +847,66 @@
 
   <Grid>
     <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="198"/>
+      <ColumnDefinition Width="232"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
-    <Grid Grid.Column="0" Margin="14,16,12,15">
+
+    <!-- ============ Sidebar ============ -->
+    <Grid Grid.Column="0" Margin="18,24,14,18">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>
         <RowDefinition Height="*"/>
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
-      <Grid Margin="3,2,2,23">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="38"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-        <Border Width="36" Height="36" CornerRadius="9" Background="{StaticResource DarkPanelBrush}" HorizontalAlignment="Left">
-          <Path Data="M 5,15 L 10,17 L 14,15 L 14,11 L 10,9 L 5,11 Z M 5,11 L 10,13 L 14,11 M 10,13 L 10,17 M 10,9 L 10,4 M 8,6 L 10,4 L 12,6"
-                Width="18" Height="20" Stretch="Uniform" Stroke="White" StrokeThickness="1.4" StrokeLineJoin="Round"
-                StrokeStartLineCap="Round" StrokeEndLineCap="Round" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Border>
-        <StackPanel Grid.Column="1" Margin="9,0,0,0" VerticalAlignment="Center">
-          <TextBlock Text="SpaceKat" FontSize="19" FontWeight="Bold"/>
-          <TextBlock Text="Mini II 小助手" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0"/>
+      <Grid Margin="4,0,0,30">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Grid Width="44" Height="44">
+          <Border CacheMode="BitmapCache" Width="38" Height="38"><Ellipse Effect="{StaticResource KnobShadow}">
+            <Ellipse.Fill>
+              <RadialGradientBrush GradientOrigin="0.36,0.26" Center="0.42,0.34" RadiusX="0.78" RadiusY="0.78">
+                <GradientStop Color="#FFFFFF" Offset="0"/>
+                <GradientStop Color="#E6E0D7" Offset="1"/>
+              </RadialGradientBrush>
+            </Ellipse.Fill>
+          </Ellipse></Border>
+          <Ellipse Width="21" Height="21" Stroke="#E0D9CE" StrokeThickness="1.2"/>
+          <Ellipse Width="7.5" Height="7.5" Fill="{DynamicResource AccentBrush}"/>
+          <Path Data="M 6.9,13.4 L 8.9,10.6 M 37.1,13.4 L 35.1,10.6 M 6.9,30.6 L 8.9,33.4 M 37.1,30.6 L 35.1,33.4"
+                Stroke="{StaticResource GraphiteBrush}" StrokeThickness="2.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+        </Grid>
+        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+          <TextBlock Text="SpaceKat" FontFamily="{StaticResource DisplayFont}" FontSize="20" FontWeight="SemiBold"
+                     TextOptions.TextFormattingMode="Ideal"/>
+          <TextBlock Text="Mini II 小助手" FontSize="11.5" Foreground="{StaticResource MutedBrush}" Margin="1,2,0,0"/>
         </StackPanel>
       </Grid>
 
       <StackPanel Grid.Row="1">
-        <TextBlock Text="操控" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" Margin="10,0,0,7"/>
         <Button x:Name="NavigationNavButton" Style="{StaticResource NavigationButton}">
           <StackPanel Orientation="Horizontal">
-            <Path Style="{StaticResource NavIconStyle}" Data="M 9,1 L 17,5 L 17,13 L 9,17 L 1,13 L 1,5 Z M 1,5 L 9,9 L 17,5 M 9,9 L 9,17"/>
+            <Path Style="{StaticResource NavIconStyle}" Data="M 9,1.5 L 16,5.5 L 16,12.5 L 9,16.5 L 2,12.5 L 2,5.5 Z M 2,5.5 L 9,9.5 L 16,5.5 M 9,9.5 L 9,16.5"/>
             <TextBlock VerticalAlignment="Center" Text="3D 导航"/>
           </StackPanel>
         </Button>
         <Button x:Name="TestNavButton" Style="{StaticResource NavigationButton}">
           <StackPanel Orientation="Horizontal">
-            <Path Style="{StaticResource NavIconStyle}" Data="M 1,2 H 17 V 16 H 1 Z M 3,9 H 6 L 8,5 L 10,13 L 12,9 H 15"/>
+            <Path Style="{StaticResource NavIconStyle}" Data="M 1,9.5 H 4.5 L 6.5,4.5 L 10.5,14.5 L 12.5,9.5 H 17"/>
             <TextBlock VerticalAlignment="Center" Text="设备测试"/>
           </StackPanel>
         </Button>
         <Button x:Name="MappingNavButton" Style="{StaticResource NavigationButton}">
           <StackPanel Orientation="Horizontal">
-            <Path Style="{StaticResource NavIconStyle}" Data="M 5,7 Q 5,2 9,2 Q 13,2 13,7 V 11 Q 13,16 9,16 Q 5,16 5,11 Z M 9,3 V 7"/>
+            <Path Style="{StaticResource NavIconStyle}" Data="M 5,6.5 A 4,4 0 0 1 13,6.5 L 13,11.5 A 4,4 0 0 1 5,11.5 Z M 9,2.5 L 9,6.8"/>
             <TextBlock VerticalAlignment="Center" Text="鼠标映射"/>
           </StackPanel>
         </Button>
         <Button x:Name="JoystickNavButton" Style="{StaticResource NavigationButton}">
           <StackPanel Orientation="Horizontal">
-            <Path Style="{StaticResource NavIconStyle}" Data="M 2,12 L 4,9 H 14 L 16,12 V 15 H 2 Z M 9,9 V 4 M 7,4 A 2,2 0 1 1 11,4 A 2,2 0 1 1 7,4"/>
+            <Path Style="{StaticResource NavIconStyle}" Data="M 9,6.6 L 9,11.5 M 2.5,11.5 L 15.5,11.5 L 15.5,15.5 L 2.5,15.5 Z M 6.6,4.2 A 2.4,2.4 0 1 1 11.4,4.2 A 2.4,2.4 0 1 1 6.6,4.2"/>
             <TextBlock VerticalAlignment="Center" Text="摇杆模拟"/>
           </StackPanel>
         </Button>
-        <Border Height="1" Background="{StaticResource LineBrush}" Margin="8,13,7,13"/>
+        <Border Style="{StaticResource Rule}" Background="#DDD8CF" Margin="14,12,14,12"/>
         <Button x:Name="SettingsNavButton" Style="{StaticResource NavigationButton}">
           <StackPanel Orientation="Horizontal">
             <Path Style="{StaticResource NavIconStyle}" Data="M 2,4 H 16 M 2,9 H 16 M 2,14 H 16 M 6,2 V 6 M 12,7 V 11 M 7,12 V 16"/>
@@ -299,441 +915,578 @@
         </Button>
       </StackPanel>
 
-      <Border Grid.Row="2" Style="{StaticResource PanelStyle}" Padding="11" Background="#F3F6FA">
+      <ContentControl Grid.Row="2" Style="{StaticResource Card}" Padding="16,15,16,16">
         <StackPanel>
-          <TextBlock Text="输出状态" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}"/>
-          <TextBlock x:Name="GlobalMouseStatusText" Text="已关闭" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,10"/>
-          <Button x:Name="GlobalStopButton" Content="停止并释放" Height="34" Padding="8,0"
-                  Background="#FCECE8" BorderBrush="#ECCFC8" Foreground="#8E362D" FontSize="12"/>
-          <TextBlock Text="Ctrl + Alt + F8" FontFamily="Consolas" FontSize="11"
-                     Foreground="{StaticResource MutedBrush}" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+          <Grid>
+            <TextBlock Text="输出" FontSize="11.5" Foreground="{StaticResource MutedBrush}"/>
+            <Ellipse x:Name="GlobalStatusDot" Width="7" Height="7" HorizontalAlignment="Right" VerticalAlignment="Center"
+                     Fill="{StaticResource LineStrongBrush}"/>
+          </Grid>
+          <TextBlock x:Name="GlobalMouseStatusText" Text="所有模拟已关闭" FontFamily="{StaticResource DisplayFont}" FontSize="15"
+                     FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,5,0,14"/>
+          <Button x:Name="GlobalStopButton" Style="{StaticResource StopKnob}" Content="停止并释放"
+                  ToolTip="停止 3D 导航、鼠标和摇杆模拟，并释放程序按住的按键"/>
         </StackPanel>
-      </Border>
+      </ContentControl>
     </Grid>
 
-    <Border Grid.Column="1" Margin="0,9,9,9" Background="#F7F8FC" BorderBrush="#CFD9E7" BorderThickness="1" CornerRadius="14">
-      <Grid Margin="16,13,14,10">
-        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1"
-                CornerRadius="10" Padding="10,8">
-          <Grid>
-            <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="设备" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"/>
-            <Grid Grid.Column="1" Margin="0,0,8,0">
-              <ComboBox x:Name="DeviceSelector" ToolTip="选择要监视的 3D 鼠标" Height="34"/>
-              <TextBlock x:Name="NoDeviceText" Text="未找到 3D 鼠标" Foreground="{StaticResource MutedBrush}"
-                         Margin="11,0,28,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+    <!-- ============ Main ============ -->
+    <Grid Grid.Column="1" Margin="2,22,10,0">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <!-- Content fades softly under the header while scrolling. -->
+      <Border Grid.Row="1" Panel.ZIndex="1" Height="16" VerticalAlignment="Top" Margin="0,0,20,0"
+              Background="{StaticResource ScrollFadeBrush}" IsHitTestVisible="False"/>
+
+      <Grid Margin="8,0,16,6">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <TextBlock x:Name="PageTitleText" Text="设备测试" Style="{StaticResource H1}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+          <Grid Height="40" MinWidth="230" MaxWidth="330">
+            <Border CacheMode="BitmapCache">
+              <Border CornerRadius="20" Background="{StaticResource CardBrush}" Effect="{StaticResource LiftShadow}"/>
+            </Border>
+            <Grid Margin="7,0,4,0">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+              <Grid Width="26" Height="26" VerticalAlignment="Center">
+                <Ellipse Fill="#F1EEE9"/>
+                <Ellipse Width="15" Height="15" Opacity="0.2" Fill="{Binding Fill, ElementName=StatusDot}"/>
+                <Ellipse x:Name="StatusDot" Width="8" Height="8" Fill="{StaticResource DimBrush}"/>
+              </Grid>
+              <Grid Grid.Column="1" Margin="2,0,0,0">
+                <ComboBox x:Name="DeviceSelector" Style="{StaticResource BareCombo}" DisplayMemberPath="DisplayName"
+                          ToolTip="选择要监视的 3D 鼠标" AutomationProperties.Name="设备"/>
+                <TextBlock x:Name="NoDeviceText" Text="未找到 3D 鼠标" Foreground="{StaticResource MutedBrush}" FontWeight="SemiBold"
+                           Margin="13,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"/>
+              </Grid>
             </Grid>
-            <Button x:Name="RefreshButton" Grid.Column="2" Content="刷新设备" Height="34" Margin="0,0,7,0" Padding="10,0"/>
-            <Button x:Name="DemoButton" Grid.Column="3" Content="演示模式" Height="34" Padding="10,0"/>
           </Grid>
-        </Border>
-
-        <Grid Grid.Row="1" Margin="2,8,2,10">
-          <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-          <Grid VerticalAlignment="Center" Margin="0,0,9,0">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-            <Ellipse x:Name="StatusDot" Width="7" Height="7" Fill="{StaticResource RailDotBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-            <TextBlock x:Name="StatusText" Grid.Column="1" Text="正在查找设备…" FontSize="11"
-                       Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
-          </Grid>
-          <Border Grid.Column="1" Background="{StaticResource PanelTintBrush}" CornerRadius="5" Padding="7,3"
-                  ToolTip="显示当前选中设备上报的电量。蓝牙连接时每 20 秒读取。">
-            <StackPanel Orientation="Horizontal">
-              <Grid Width="21" Height="11" Margin="0,0,5,0" VerticalAlignment="Center">
-                <Border Width="17" Height="10" HorizontalAlignment="Left" BorderBrush="{StaticResource RailDotBrush}" BorderThickness="1" CornerRadius="2"/>
-                <Rectangle Width="2" Height="4" Fill="{StaticResource RailDotBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <Rectangle x:Name="BatteryFill" Width="0" Height="6" Fill="{DynamicResource AccentBrush}" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0"/>
-              </Grid>
-              <TextBlock x:Name="BatteryText" Text="电量 — · 未连接" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
-            </StackPanel>
-          </Border>
-          <TextBlock x:Name="RateText" Grid.Column="2" Text="— Hz · 0 帧" FontFamily="Consolas" FontSize="11"
-                     Foreground="{StaticResource MutedBrush}" Margin="11,0,0,0" VerticalAlignment="Center"/>
-        </Grid>
-
-        <StackPanel Grid.Row="2" Margin="2,0,2,13">
-          <TextBlock x:Name="PageTitleText" Text="设备测试" FontSize="30" FontWeight="Bold"/>
-          <TextBlock x:Name="PageDescriptionText" Text="六轴实时预览与按键状态" Style="{StaticResource SecondaryTextStyle}" Margin="0,3,0,0"/>
+          <Button x:Name="RefreshButton" Style="{StaticResource IconButton}" Margin="10,0,0,0" ToolTip="刷新设备" AutomationProperties.Name="刷新设备">
+            <Path Style="{StaticResource GlyphStyle}" Data="M 14.5,5.5 A 6.5,6.5 0 1 0 15.3,10 M 14.8,1.6 L 14.8,5.6 L 10.8,5.6"/>
+          </Button>
+          <Button x:Name="DemoButton" Style="{StaticResource PillButton}" Content="演示模式" Margin="10,0,0,0"/>
         </StackPanel>
-
-        <Grid x:Name="TestPage" Grid.Row="3">
-          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
-            <StackPanel>
-              <Grid>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="1.08*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <Border Style="{StaticResource PanelStyle}" Padding="16" Margin="0,0,12,0">
-                  <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                    <Grid>
-                      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                      <TextBlock Text="六轴操控预览" Style="{StaticResource SectionTitleStyle}" VerticalAlignment="Center"/>
-                      <Button x:Name="ResetCubeButton" Grid.Column="1" Content="重置立方体" Height="30" FontSize="11" Padding="10,0"/>
-                    </Grid>
-                    <Border x:Name="CubeHost" Grid.Row="1" Height="272" Margin="0,14,0,12" Background="{DynamicResource PanelTintBrush}" CornerRadius="8" ClipToBounds="True"/>
-                    <TextBlock x:Name="CubeHintText" Grid.Row="2" Text="X / Y / Z 平移 · Rx / Ry / Rz 旋转；松手后停留，重置可回到中心。" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap"/>
-                  </Grid>
-                </Border>
-                <Border Grid.Column="1" Style="{StaticResource PanelStyle}" Padding="16">
-                  <Grid>
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <Grid Margin="0,0,0,12">
-                      <TextBlock Text="六轴输入" Style="{StaticResource SectionTitleStyle}" VerticalAlignment="Center"/>
-                      <TextBlock Text="原始数值" Style="{StaticResource SecondaryTextStyle}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="11"/>
-                    </Grid>
-                    <UniformGrid x:Name="AxesHost" Grid.Row="1" Columns="2" Rows="3" Margin="-5,0,-5,-10"/>
-                  </Grid>
-                </Border>
-              </Grid>
-              <Border Style="{StaticResource PanelStyle}" Padding="16" Margin="0,12,0,0">
-                <Grid>
-                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                  <Grid Margin="0,0,0,12">
-                    <TextBlock Text="按键测试" Style="{StaticResource SectionTitleStyle}" VerticalAlignment="Center"/>
-                    <Button x:Name="ResetCountsButton" Content="清零次数" Height="30" Padding="10,0" HorizontalAlignment="Right" FontSize="11"/>
-                  </Grid>
-                  <UniformGrid x:Name="TestButtonsHost" Grid.Row="1" Columns="4" Rows="1" Margin="-5,0,-5,0"/>
-                </Grid>
-              </Border>
-              <Border Style="{StaticResource PanelStyle}" Padding="16,12" Margin="0,12,0,0">
-                <Expander Header="输入详情与按键诊断" Foreground="{DynamicResource InkBrush}" FontSize="12">
-                  <StackPanel Margin="0,12,0,0">
-                    <TextBlock x:Name="ButtonHelpText" Text="短按四个按键，观察状态和触发次数；在鼠标映射页学习逻辑键编号。" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                    <CheckBox x:Name="RawButtonMode" Content="原始按键兼容读取（保留未声明的实际位）" IsChecked="True" FontSize="11" Foreground="{DynamicResource MutedBrush}" Margin="0,0,0,12" ToolTip="用于核对当前固件的原始按键报告。"/>
-                    <Border Background="{DynamicResource DarkPanelBrush}" CornerRadius="8" Padding="14,12">
-                      <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <StackPanel>
-                          <TextBlock Text="最新报文" FontSize="11" Foreground="#AAB9C8"/>
-                          <TextBlock x:Name="RawReportText" Text="等待设备发送数据…" FontFamily="Consolas" FontSize="11" Foreground="#EDF2F7" Margin="0,7,0,0" TextWrapping="Wrap"/>
-                          <TextBlock x:Name="ButtonMaskText" Text="按键位图：— 已按下：—" FontSize="11" Foreground="#B9C6D2" Margin="0,7,0,0" TextWrapping="Wrap"/>
-                          <TextBlock x:Name="LastButtonReportText" Text="最后按键帧：尚未收到" FontSize="11" Foreground="#B9C6D2" Margin="0,7,0,0" TextWrapping="Wrap"/>
-                          <Expander Header="按键事件记录" Foreground="#EDF2F7" FontSize="11" Margin="0,9,0,0">
-                            <TextBox x:Name="ButtonHistoryText" IsReadOnly="True" Height="104" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" FontFamily="Consolas" FontSize="11" Background="{DynamicResource DarkPanelBrush}" Foreground="#EDF2F7" BorderThickness="0"/>
-                          </Expander>
-                        </StackPanel>
-                        <Button x:Name="CopyButton" Grid.Column="1" Content="复制当前值" FontSize="11" Height="30" Margin="12,0,0,0" VerticalAlignment="Top" Background="#344252" Foreground="#EDF2F7" BorderBrush="#526171" Padding="10,0"/>
-                      </Grid>
-                    </Border>
-                  </StackPanel>
-                </Expander>
-              </Border>
-              <TextBlock x:Name="FooterText" Text="测试页只显示设备输入；可在左侧切换到鼠标映射。" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="2,11,2,3"/>
-            </StackPanel>
-          </ScrollViewer>
-        </Grid>
-
-      <Grid x:Name="MappingPage" Grid.Row="3" Visibility="Collapsed">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
-          <StackPanel>
-            <Border Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="18,16">
-              <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <TextBlock Text="鼠标控制" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                <Button x:Name="MouseToggleButton" Content="开启鼠标控制" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Height="34"/>
-                <TextBlock x:Name="MouseStatusText" Grid.Row="1" Text="已关闭 · 开启后 X / Y 控制光标、Z 控制滚轮，四键执行映射" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,18" TextWrapping="Wrap"/>
-                <Grid Grid.Row="2">
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                  <StackPanel Margin="0,0,24,0">
-                    <TextBlock x:Name="MouseSpeedText" Text="速度 900" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,8"/>
-                    <Slider x:Name="MouseSpeedSlider" Minimum="100" Maximum="2400" Value="900" TickFrequency="50" IsSnapToTickEnabled="True" ToolTip="偏移越大，移动越快；此处调整整体速度。Windows 指针速度也会影响最终速度。"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="1" Margin="0,0,24,0">
-                    <TextBlock x:Name="MouseDeadZoneText" Text="死区 16" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,8"/>
-                    <Slider x:Name="MouseDeadZoneSlider" Minimum="0" Maximum="100" Value="16" TickFrequency="1" IsSnapToTickEnabled="True" ToolTip="绝对值不超过死区的 X、Y 输入不移动光标，可用来抑制回中漂移。"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,12,0,0">
-                    <CheckBox x:Name="MouseInvertX" Content="反转 X" IsChecked="True" FontSize="11" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="MouseInvertY" Content="反转 Y" IsChecked="True" FontSize="11"/>
-                  </StackPanel>
-                </Grid>
-                <Border Grid.Row="3" Background="{StaticResource PanelTintBrush}" CornerRadius="8" Padding="12,10" Margin="0,18,0,0">
-                  <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock x:Name="MouseButtonStatusText" Text="左键未锁定 · 开启后四键映射生效" Foreground="{StaticResource MutedBrush}" FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,0"/>
-                    <Button x:Name="ReleaseLeftButton" Grid.Column="1" Content="释放左键" Height="28" FontSize="11" Padding="10,0" IsEnabled="False"/>
-                  </Grid>
-                </Border>
-                <DockPanel Grid.Row="4" Margin="0,12,0,0">
-                  <CheckBox x:Name="WheelDominantAxis" DockPanel.Dock="Left" Content="主导轴过滤" IsChecked="True" FontSize="11" Margin="0,0,12,0" VerticalAlignment="Center" ToolTip="光标移动和 Z 滚轮每次只响应一组，松手回中后重新判断。"/>
-                  <TextBlock x:Name="WheelDominantStatus" Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                </DockPanel>
-              </Grid>
-            </Border>
-            <Border Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="18,14" Margin="0,14,0,0">
-              <StackPanel>
-                <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                  <TextBlock Text="Z 轴滚轮" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                  <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="WheelEnabled" Content="启用 Z 滚轮" IsChecked="True" FontSize="11" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="WheelInvert" Content="反转方向" FontSize="11"/>
-                  </StackPanel>
-                </Grid>
-                <TextBlock x:Name="WheelStatusText" Text="开启鼠标控制后，Z+ 上滚、Z− 下滚；松手停止。" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,7,0,12" TextWrapping="Wrap"/>
-                <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                  <StackPanel Margin="0,0,22,0">
-                    <TextBlock Text="向上滚动" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock x:Name="WheelUpGainText" Text="力度灵敏度 1.0×" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,9,0,4"/>
-                    <Slider x:Name="WheelUpGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调上滚力度，越高越省力。"/>
-                    <TextBlock x:Name="WheelUpSpeedText" Text="上滚速度 6 格/秒" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="WheelUpSpeed" Minimum="1" Maximum="120" Value="6" TickFrequency="1" IsSnapToTickEnabled="True" ToolTip="Z 轴满偏移时的最大上滚速度，以格/秒计。实际滚动距离受系统和目标软件设置影响。"/>
-                    <TextBlock x:Name="WheelUpDeadZoneText" Text="回中死区 8%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="WheelUpDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="1">
-                    <TextBlock Text="向下滚动" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/>
-                    <TextBlock x:Name="WheelDownGainText" Text="力度灵敏度 1.0×" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,9,0,4"/>
-                    <Slider x:Name="WheelDownGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调下滚力度，越高越省力。"/>
-                    <TextBlock x:Name="WheelDownSpeedText" Text="下滚速度 6 格/秒" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="WheelDownSpeed" Minimum="1" Maximum="120" Value="6" TickFrequency="1" IsSnapToTickEnabled="True" ToolTip="Z 轴满偏移时的最大下滚速度，以格/秒计。实际滚动距离受系统和目标软件设置影响。"/>
-                    <TextBlock x:Name="WheelDownDeadZoneText" Text="回中死区 8%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="WheelDownDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True"/>
-                  </StackPanel>
-                </Grid>
-                <WrapPanel Margin="0,13,0,0">
-                  <Button x:Name="WheelCalibrateButton" Content="以当前 Z 为中心" Height="28" FontSize="11" Padding="10,0" Margin="0,0,8,0"/>
-                  <Button x:Name="WheelClearCenterButton" Content="清除 Z 校准" Height="28" FontSize="11" Padding="10,0" Margin="0,0,12,0"/>
-                  <TextBlock x:Name="WheelCenterText" Text="Z 中心 0" FontSize="10" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
-                </WrapPanel>
-              </StackPanel>
-            </Border>
-            <StackPanel Margin="1,22,1,13">
-              <TextBlock Text="选择四键鼠标功能" FontSize="16" FontWeight="SemiBold"/>
-              <TextBlock Text="每个按键独立设置；“左键锁定 / 释放”按一次保持按住，再按一次松开。" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0" TextWrapping="Wrap"/>
-              <TextBlock x:Name="MappingHelpText" Text="先确认四个物理按键对应的逻辑键编号，再选择鼠标功能。" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0" TextWrapping="Wrap"/>
-            </StackPanel>
-            <UniformGrid x:Name="ButtonsHost" Columns="4" Rows="1" Margin="-5,0,-5,0"/>
-            <Border BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0" Padding="1,13,1,0" Margin="0,20,0,0">
-              <TextBlock Text="切回设备测试会停止鼠标控制并释放锁定；也可以随时按 Ctrl+Alt+F8，或点击左侧“停止并释放”。" FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
-            </Border>
+        <TextBlock x:Name="PageDescriptionText" Grid.Row="1" Text="六轴实时预览与按键状态" FontSize="12.5"
+                   Foreground="{StaticResource MutedBrush}" Margin="1,7,16,0" TextTrimming="CharacterEllipsis"/>
+        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,9,4,0">
+          <TextBlock x:Name="StatusText" Text="正在查找设备…" FontSize="11.5" Foreground="{StaticResource MutedBrush}"
+                     TextTrimming="CharacterEllipsis" MaxWidth="380" VerticalAlignment="Center"/>
+          <Border Width="1" Height="12" Background="{StaticResource LineStrongBrush}" Margin="12,0" VerticalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" ToolTip="显示当前选中设备上报的电量。蓝牙连接时每 20 秒读取。">
+            <Grid Width="21" Height="11" Margin="0,0,6,0" VerticalAlignment="Center">
+              <Border Width="17" Height="10" HorizontalAlignment="Left" BorderBrush="{StaticResource DimBrush}" BorderThickness="1.2" CornerRadius="2.5"/>
+              <Rectangle Width="2" Height="4" RadiusX="1" RadiusY="1" Fill="{StaticResource DimBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+              <Rectangle x:Name="BatteryFill" Width="0" Height="6" RadiusX="1" RadiusY="1" Fill="{StaticResource LiveBrush}"
+                         HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,0,0,0"/>
+            </Grid>
+            <TextBlock x:Name="BatteryText" Text="电量 — · 未连接" FontSize="11.5" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
           </StackPanel>
-        </ScrollViewer>
+          <Border Width="1" Height="12" Background="{StaticResource LineStrongBrush}" Margin="12,0" VerticalAlignment="Center"/>
+          <TextBlock x:Name="RateText" Text="— Hz · 0 帧" FontFamily="{StaticResource NumberFont}" FontSize="11.5"
+                     Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+        </StackPanel>
       </Grid>
 
-      <Grid x:Name="JoystickPage" Grid.Row="3" Visibility="Collapsed">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
-          <StackPanel>
-            <Border Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="15,12" Margin="0,0,0,14">
-              <Grid>
-                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                <TextBlock Text="输出目标" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,0,12,0"/>
-                <ComboBox x:Name="StickOutputMode" Grid.Column="1" Height="32" Margin="0,0,14,0"/>
-                <Button x:Name="StickToggleButton" Grid.Column="2" Content="开启摇杆模拟" Style="{StaticResource PrimaryButton}" Height="32"/>
-                <TextBlock x:Name="StickStatusText" Grid.Row="1" Grid.ColumnSpan="3" Text="已关闭 · 右摇杆回中" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,9,0,0" TextWrapping="Wrap"/>
-                <DockPanel Grid.Row="2" Grid.ColumnSpan="3" Margin="0,10,0,0">
-                  <CheckBox x:Name="StickDominantAxis" DockPanel.Dock="Left" Content="主导轴过滤" IsChecked="True" FontSize="11" Margin="0,0,12,0" VerticalAlignment="Center" ToolTip="转向和 Z 缩放每次只响应一组，松手回中后重新判断。"/>
-                  <TextBlock x:Name="StickDominantStatus" Foreground="{StaticResource MutedBrush}" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                </DockPanel>
-              </Grid>
-            </Border>
-            <Border Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="15,12" Margin="0,0,0,14">
+      <!-- ===== 设备测试 ===== -->
+      <Grid x:Name="TestPage" Grid.Row="1">
+        <ScrollViewer Style="{StaticResource PageScroller}">
+          <StackPanel Margin="8,14,16,28">
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="384"/></Grid.ColumnDefinitions>
+              <ContentControl Style="{StaticResource Card}">
+                <Grid>
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                  <DockPanel>
+                    <Button x:Name="ResetCubeButton" DockPanel.Dock="Right" Style="{StaticResource MiniButton}">
+                      <StackPanel Orientation="Horizontal">
+                        <Path Style="{StaticResource GlyphStyle}" Width="12" Height="12" Margin="0,0,6,0" Data="M 3,8 A 5.5,5.5 0 1 0 5,3.8 M 3,1 L 3,4.6 L 6.6,4.6"/>
+                        <TextBlock Text="重置立方体" VerticalAlignment="Center"/>
+                      </StackPanel>
+                    </Button>
+                    <TextBlock Text="六轴姿态" Style="{StaticResource H2}"/>
+                    <TextBlock Text="平移 X Y Z · 旋转 Rx Ry Rz" Style="{StaticResource Sub}" Margin="11,2,12,0"/>
+                  </DockPanel>
+                  <Grid Grid.Row="1" Margin="0,14,0,0" Height="340">
+                    <Border x:Name="CubeHost" Style="{StaticResource Well}"/>
+                    <Border Style="{StaticResource WellRim}"/>
+                  </Grid>
+                </Grid>
+              </ContentControl>
+              <ContentControl Grid.Column="2" Style="{StaticResource Card}">
+                <Grid>
+                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                  <DockPanel>
+                    <TextBlock Text="六轴输入" Style="{StaticResource H2}"/>
+                    <TextBlock Text="原始数值 −512 至 +511" Style="{StaticResource Sub}" Margin="11,2,0,0"/>
+                  </DockPanel>
+                  <UniformGrid x:Name="AxesHost" Grid.Row="1" Columns="3" Rows="2" VerticalAlignment="Center" Margin="0,10,0,0"/>
+                </Grid>
+              </ContentControl>
+            </Grid>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
               <StackPanel>
                 <DockPanel>
-                  <TextBlock x:Name="StickButtonState" DockPanel.Dock="Right" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
-                  <TextBlock Text="手柄按键映射" FontSize="14" FontWeight="SemiBold"/>
+                  <Button x:Name="ResetCountsButton" DockPanel.Dock="Right" Content="清零次数" Style="{StaticResource MiniButton}"/>
+                  <TextBlock Text="按键" Style="{StaticResource H2}"/>
+                  <TextBlock Text="短按观察状态与触发次数" Style="{StaticResource Sub}" Margin="11,2,12,0"/>
                 </DockPanel>
-                <UniformGrid x:Name="StickButtonsHost" Columns="4" Rows="1" Margin="-4,9,-4,0"/>
-                <TextBlock Text="按键编号沿用鼠标映射页。设为实体启停的键只负责启停。" FontSize="10" Foreground="{StaticResource MutedBrush}" Margin="0,7,0,0" TextWrapping="Wrap"/>
+                <UniformGrid x:Name="TestButtonsHost" Columns="4" Rows="1" Margin="-6,14,-6,0"/>
               </StackPanel>
-            </Border>
-            <Grid x:Name="StickPreviewGrid">
-              <Grid.ColumnDefinitions><ColumnDefinition Width="1.25*"/><ColumnDefinition Width="*" MinWidth="210"/></Grid.ColumnDefinitions>
-              <Border Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,0,14,0">
-                <Grid>
-                  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                  <TextBlock Text="固定中心视角" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                  <Button x:Name="StickResetViewButton" Content="重置视角与缩放" HorizontalAlignment="Right" Height="27" FontSize="10" Padding="9,0"/>
-                  <Grid Grid.Row="1" Margin="0,8,0,0">
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="175"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock Text="预览大小" FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
-                    <Slider x:Name="StickPreviewSize" Grid.Column="1" TickFrequency="5" SmallChange="5" LargeChange="15"
-                            IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="10,0"
-                            AutomationProperties.Name="预览大小" ToolTip="调整预览区域的宽度和高度"/>
-                    <TextBlock x:Name="StickPreviewSizeText" Grid.Column="2" Text="100%" MinWidth="44" TextAlignment="Right"
-                               FontSize="11" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
-                  </Grid>
-                  <Border x:Name="StickCameraHost" Grid.Row="2" Margin="0,9,0,8" CornerRadius="8" Background="#F5FAFB" ClipToBounds="True"/>
-                  <TextBlock x:Name="StickCameraText" Grid.Row="3" Text="Yaw 0° · Pitch 0° · 位置 (0,0,0) · Roll 0°" FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
-                </Grid>
-              </Border>
-              <Border Grid.Column="1" VerticalAlignment="Top" Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="14,12">
-                <StackPanel>
-                  <TextBlock Text="右摇杆 · RIGHT STICK" FontSize="14" FontWeight="SemiBold"/>
-                  <Border x:Name="RightStickHost" Height="205" Margin="0,8,0,4"/>
-                  <TextBlock x:Name="StickValueText" Text="X 0.000   Y 0.000" FontFamily="Consolas" FontSize="17" Foreground="{DynamicResource AccentBrush}" HorizontalAlignment="Center"/>
-                  <TextBlock x:Name="StickIntegerText" Text="RX 0   RY 0" FontFamily="Consolas" FontSize="10" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0" Padding="20,6,20,8">
+              <Expander Header="输入详情与按键诊断">
+                <StackPanel Margin="0,4,0,12">
+                  <TextBlock x:Name="ButtonHelpText" Text="短按四个按键，观察状态和触发次数；在鼠标映射页学习逻辑键编号。" Style="{StaticResource Caption}" Margin="0,0,0,12"/>
+                  <CheckBox x:Name="RawButtonMode" Content="原始按键兼容读取（保留未声明的实际位）" IsChecked="True" Margin="0,0,0,14"
+                            ToolTip="用于核对当前固件的原始按键报告。"/>
+                  <Border Background="{StaticResource TerminalBrush}" CornerRadius="14" Padding="18,15">
+                    <Grid>
+                      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                      <StackPanel>
+                        <TextBlock Text="最新报文" FontSize="11.5" Foreground="{StaticResource TerminalMutedBrush}"/>
+                        <TextBlock x:Name="RawReportText" Text="等待设备发送数据…" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                   Foreground="{StaticResource TerminalInkBrush}" Margin="0,7,0,0" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="ButtonMaskText" Text="按键位图：— 已按下：—" FontSize="11.5" Foreground="{StaticResource TerminalMutedBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="LastButtonReportText" Text="最后按键帧：尚未收到" FontSize="11.5" Foreground="{StaticResource TerminalMutedBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                        <Expander Header="按键事件记录" Foreground="{StaticResource TerminalInkBrush}" FontSize="12" Margin="0,8,0,0">
+                          <TextBox x:Name="ButtonHistoryText" IsReadOnly="True" Height="110" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"
+                                   FontFamily="{StaticResource MonoFont}" FontSize="11.5" Background="#35332F" Foreground="{StaticResource TerminalInkBrush}"
+                                   Padding="10,8" VerticalContentAlignment="Top"/>
+                        </Expander>
+                      </StackPanel>
+                      <Button x:Name="CopyButton" Grid.Column="1" Content="复制当前值" Style="{StaticResource MiniButton}" Margin="14,0,0,0"
+                              VerticalAlignment="Top" Background="#3D3B37" Foreground="{StaticResource TerminalInkBrush}"/>
+                    </Grid>
+                  </Border>
                 </StackPanel>
-              </Border>
-            </Grid>
-            <Border Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="15,13" Margin="0,14,0,0">
-              <StackPanel>
-                <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                  <TextBlock Text="Z 轴缩放 · LT / RT" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                  <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <CheckBox x:Name="ZoomEnabled" Content="启用 Z 轴" IsChecked="True" FontSize="11" Margin="0,0,16,0"/>
-                    <CheckBox x:Name="ZoomInvert" Content="反转方向" FontSize="11"/>
-                  </StackPanel>
-                </Grid>
-                <Grid Margin="0,10,0,9">
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                  <StackPanel Margin="0,0,18,0">
-                    <Grid><TextBlock Text="LT · 缩小" Foreground="{StaticResource MutedBrush}" FontSize="10"/><TextBlock x:Name="ZoomLeftValue" Text="0 / 255" HorizontalAlignment="Right" FontFamily="Consolas" Foreground="{DynamicResource AccentBrush}" FontSize="11"/></Grid>
-                    <ProgressBar x:Name="ZoomLeftMeter" Minimum="0" Maximum="255" Value="0" Height="6" Foreground="{DynamicResource AccentBrush}" Background="{StaticResource ControlDisabledBrush}" BorderThickness="0" Margin="0,5,0,0"/>
-                    <TextBlock x:Name="ZoomOutGainText" Text="力度灵敏度 1.0×" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4"/>
-                    <Slider x:Name="ZoomOutGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调节缩小的力度，越高越省力。"/>
-                    <TextBlock x:Name="ZoomOutSpeedText" Text="缩小速度 50%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="ZoomOutSpeed" Minimum="5" Value="50" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="超过 100% 时，本页缩小更快，虚拟扳机在较小的 Z 轴偏移时达到满值。"/>
-                    <TextBlock x:Name="ZoomOutDeadZoneText" Text="回中死区 8%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="ZoomOutDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True" ToolTip="只调节缩小方向的回中死区。"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="1">
-                    <Grid><TextBlock Text="RT · 放大" Foreground="{StaticResource MutedBrush}" FontSize="10"/><TextBlock x:Name="ZoomRightValue" Text="0 / 255" HorizontalAlignment="Right" FontFamily="Consolas" Foreground="{DynamicResource AccentBrush}" FontSize="11"/></Grid>
-                    <ProgressBar x:Name="ZoomRightMeter" Minimum="0" Maximum="255" Value="0" Height="6" Foreground="{DynamicResource AccentBrush}" Background="{StaticResource ControlDisabledBrush}" BorderThickness="0" Margin="0,5,0,0"/>
-                    <TextBlock x:Name="ZoomInGainText" Text="力度灵敏度 1.0×" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,10,0,4"/>
-                    <Slider x:Name="ZoomInGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调节放大的力度，越高越省力。"/>
-                    <TextBlock x:Name="ZoomInSpeedText" Text="放大速度 50%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="ZoomInSpeed" Minimum="5" Value="50" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="超过 100% 时，本页放大更快，虚拟扳机在较小的 Z 轴偏移时达到满值。"/>
-                    <TextBlock x:Name="ZoomInDeadZoneText" Text="回中死区 8%" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,8,0,4"/>
-                    <Slider x:Name="ZoomInDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True" ToolTip="只调节放大方向的回中死区。"/>
-                  </StackPanel>
-                </Grid>
-                <TextBlock x:Name="ZoomHintText" Text="Z+ 放大 · Z− 缩小。两方向的力度、速度和死区分别调节；外部软件需绑定 LT / RT 到缩放。" FontSize="10" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,3,0,0"/>
-              </StackPanel>
-            </Border>
-            <Border Background="White" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="15,13" Margin="0,14,0,0">
-              <StackPanel>
-                <TextBlock Text="轴映射与手感" FontSize="14" FontWeight="SemiBold"/>
-                <TextBlock Text="内置设置使用平移 X / Y，推动操纵帽控制左右和上下。可在下方选择其他通道。" Foreground="{StaticResource MutedBrush}" FontSize="11" Margin="0,6,0,12" TextWrapping="Wrap"/>
-                <Grid>
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                  <StackPanel Margin="0,0,18,0">
-                    <TextBlock Text="右摇杆 X · 左右看" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,5"/>
-                    <ComboBox x:Name="StickSourceX" Height="30"/>
-                    <CheckBox x:Name="StickInvertX" Content="反转 X" FontSize="11" Margin="0,8,0,0"/>
-                    <TextBlock x:Name="StickGainXText" Text="X 增益 1.0" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,11,0,5"/>
-                    <Slider x:Name="StickGainX" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True"/>
-                  </StackPanel>
-                  <StackPanel Grid.Column="1">
-                    <TextBlock Text="右摇杆 Y · 上下看" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,5"/>
-                    <ComboBox x:Name="StickSourceY" Height="30"/>
-                    <CheckBox x:Name="StickInvertY" Content="反转 Y" IsChecked="True" FontSize="11" Margin="0,8,0,0"/>
-                    <TextBlock x:Name="StickGainYText" Text="Y 增益 1.0" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,11,0,5"/>
-                    <Slider x:Name="StickGainY" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True"/>
-                  </StackPanel>
-                </Grid>
-                <Grid Margin="0,13,0,0">
-                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                  <StackPanel Margin="0,0,18,0"><TextBlock x:Name="StickDeadZoneText" Text="径向死区 0.08" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/><Slider x:Name="StickDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True"/></StackPanel>
-                  <StackPanel Grid.Column="1" Margin="0,0,18,0"><TextBlock x:Name="StickGammaText" Text="响应曲线 1.5" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,6"/><Slider x:Name="StickGamma" Minimum="1" Maximum="3" Value="1.5" TickFrequency="0.1" IsSnapToTickEnabled="True"/></StackPanel>
-                  <StackPanel Grid.Column="2"><TextBlock Text="实体按键启停" FontSize="11" Foreground="{StaticResource MutedBrush}" Margin="0,0,0,4"/><ComboBox x:Name="StickToggleKey" Height="28" FontSize="11"/></StackPanel>
-                </Grid>
-                <WrapPanel Margin="0,14,0,0">
-                  <Button x:Name="StickCalibrateButton" Content="以当前位置为中心" Height="28" FontSize="11" Padding="10,0" Margin="0,0,8,0"/>
-                  <Button x:Name="StickClearCenterButton" Content="清除校准" Height="28" FontSize="11" Padding="10,0" Margin="0,0,12,0"/>
-                  <TextBlock x:Name="StickCenterText" Text="中心：未校准" Foreground="{StaticResource MutedBrush}" FontSize="10" VerticalAlignment="Center"/>
-                </WrapPanel>
-              </StackPanel>
-            </Border>
-            <TextBlock Text="持续偏转持续转向或缩放；松手后停止并保留视角与倍率。150 ms 无新数据时，右摇杆和两扳机归零。虚拟手柄需由目标软件绑定相应功能。" FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="2,12,2,5"/>
+              </Expander>
+            </ContentControl>
+            <TextBlock x:Name="FooterText" Text="测试页只显示设备输入；可在左侧切换到鼠标映射。" Style="{StaticResource Caption}" Margin="4,14,4,0"/>
           </StackPanel>
         </ScrollViewer>
       </Grid>
-        <Grid x:Name="NavigationPage" Grid.Row="3" Visibility="Collapsed">
-          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
-            <StackPanel>
-              <Border Background="{DynamicResource DarkPanelBrush}" CornerRadius="12" Padding="13,11" Margin="0,0,0,8">
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="导航方式" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center" Margin="2,0,14,0"/>
-                  <ComboBox x:Name="NavigationTargetPicker" Grid.Column="1" SelectedValuePath="Tag" Height="34"
-                            MaxWidth="390" HorizontalAlignment="Stretch" AutomationProperties.Name="导航方式">
-                      <ComboBoxItem Content="Blender" Tag="Blender"/>
-                      <ComboBoxItem Content="Fusion 360 · 相机直连" Tag="FusionNative"/>
-                      <ComboBoxItem Content="FreeCAD（试用适配）" Tag="FreeCAD"/>
-                      <ComboBoxItem Content="Rhino 8（试用适配）" Tag="Rhino"/>
-                      <ComboBoxItem Content="全局适配 · 自动识别软件" Tag="Global"/>
-                      <ComboBoxItem Content="SOLIDWORKS · 六轴直连" Tag="SolidWorks"/>
-                  </ComboBox>
-                  <Button Grid.Column="2" x:Name="NavigationExportButton" Content="导出适配器 ZIP" Height="34" Padding="10,0" Margin="8,0,0,0"/>
-                  <Button Grid.Column="3" x:Name="NavigationToggleButton" Content="开启导航" Height="34" MinWidth="86" Margin="8,0,0,0"
-                          Background="#E0F4F0" BorderBrush="#81C2B9" Foreground="#153A37"/>
-                </Grid>
-              </Border>
-              <Border Background="{DynamicResource PanelTintBrush}" CornerRadius="8" Padding="12,7" Margin="0,0,0,10">
-                <TextBlock x:Name="NavigationStatusText" FontSize="12" FontWeight="SemiBold" Foreground="#24424B" TextWrapping="Wrap"/>
-              </Border>
-              <Border Style="{StaticResource PanelStyle}" Padding="14,11" Margin="0,0,0,10">
-                <StackPanel>
-                  <Grid Margin="0,0,0,7"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                    <TextBlock Text="导航手感" Style="{StaticResource SectionTitleStyle}"/>
-                    <TextBlock Grid.Column="1" x:Name="NavigationValuesText" Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center"/>
-                  </Grid>
-                  <Grid>
-                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                    <StackPanel><TextBlock Text="平移与缩放" FontSize="12"/><Slider x:Name="NavigationLinear" Minimum="0.01" Maximum="3" Value="0.35" TickFrequency="0.01" SmallChange="0.01" LargeChange="0.05" IsSnapToTickEnabled="True" AutomationProperties.Name="平移与缩放速度"/></StackPanel>
-                    <StackPanel Grid.Column="2"><TextBlock Text="旋转" FontSize="12"/><Slider x:Name="NavigationAngular" Minimum="0.01" Maximum="3" Value="0.35" TickFrequency="0.01" SmallChange="0.01" LargeChange="0.05" IsSnapToTickEnabled="True" AutomationProperties.Name="旋转速度"/></StackPanel>
-                    <StackPanel Grid.Column="4"><TextBlock Text="回中死区" FontSize="12"/><Slider x:Name="NavigationDeadZone" Minimum="0" Maximum="100" Value="16" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="回中死区"/></StackPanel>
-                  </Grid>
-                  <Separator Background="{DynamicResource LineBrush}" Margin="0,5,0,7" Height="1"/>
-                  <StackPanel Orientation="Horizontal"><TextBlock Text="反转轴" Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center" Margin="0,0,14,0"/>
-                    <CheckBox x:Name="NavInvertX" Content="X" Margin="0,0,14,0"/><CheckBox x:Name="NavInvertY" Content="Y" Margin="0,0,14,0"/><CheckBox x:Name="NavInvertZ" Content="Z" Margin="0,0,14,0"/><CheckBox x:Name="NavInvertRx" Content="Rx" Margin="0,0,14,0"/><CheckBox x:Name="NavInvertRy" Content="Ry" Margin="0,0,14,0"/><CheckBox x:Name="NavInvertRz" Content="Rz"/>
-                  </StackPanel>
-                </StackPanel>
-              </Border>
-              <Border Style="{StaticResource PanelStyle}" Padding="14,11" Margin="0,0,0,10">
-                <StackPanel><TextBlock Text="按键映射" Style="{StaticResource SectionTitleStyle}" Margin="0,0,0,7"/><UniformGrid x:Name="NavigationButtonsHost" Columns="4"/><TextBlock x:Name="NavigationButtonHelp" Style="{StaticResource SecondaryTextStyle}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel>
-              </Border>
-              <Border Background="{DynamicResource PanelTintBrush}" CornerRadius="10" Padding="14,11">
-                <StackPanel><TextBlock Text="使用方法" Style="{StaticResource SectionTitleStyle}"/><TextBlock x:Name="NavigationInstructionsText" FontSize="12" Foreground="{DynamicResource InkBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/><TextBlock Text="启用后切到目标软件即可操控。Ctrl+Alt+F8、断开设备或离开本页都会停止导航。" Style="{StaticResource SecondaryTextStyle}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel>
-              </Border>
-            </StackPanel>
-          </ScrollViewer>
-        </Grid>
 
-        <Grid x:Name="SettingsPage" Grid.Row="3" Visibility="Collapsed">
-          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,4,0">
-            <StackPanel>
-              <Grid Margin="0,0,0,12">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <StackPanel Margin="0,4,0,0"><TextBlock Text="开机自启动" Style="{StaticResource SectionTitleStyle}"/><TextBlock Text="登录后的启动方式" Style="{StaticResource SecondaryTextStyle}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel>
-                <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Padding="16,14"><StackPanel><CheckBox x:Name="StartupCheckBox" Content="登录 Windows 后打开 SpaceKat 小助手"/><TextBlock x:Name="StartupStatusText" Style="{StaticResource SecondaryTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap"/></StackPanel></Border>
-              </Grid>
-              <Grid Margin="0,0,0,12">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <StackPanel Margin="0,4,0,0"><TextBlock Text="主题色" Style="{StaticResource SectionTitleStyle}"/><TextBlock Text="选择界面强调色" Style="{StaticResource SecondaryTextStyle}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel>
-                <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Padding="16,14"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="155"/><ColumnDefinition Width="12"/><ColumnDefinition Width="60"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><ComboBox x:Name="ThemePicker" Height="32"/><Border Grid.Column="2" Height="32" Background="{DynamicResource AccentBrush}" CornerRadius="6"/><TextBlock Grid.Column="4" x:Name="ThemeStatusText" Style="{StaticResource SecondaryTextStyle}" VerticalAlignment="Center" TextWrapping="Wrap"/></Grid></Border>
-              </Grid>
-              <Grid Margin="0,0,0,12">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <StackPanel Margin="0,4,0,0"><TextBlock Text="按键布局" Style="{StaticResource SectionTitleStyle}"/></StackPanel>
-                <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Padding="16,14">
+      <!-- ===== 鼠标映射 ===== -->
+      <Grid x:Name="MappingPage" Grid.Row="1" Visibility="Collapsed">
+        <ScrollViewer Style="{StaticResource PageScroller}">
+          <StackPanel Margin="8,14,16,28">
+            <ContentControl Style="{StaticResource Card}">
+              <StackPanel>
+                <DockPanel>
+                  <Button x:Name="MouseToggleButton" DockPanel.Dock="Right" Content="开启鼠标控制" Style="{StaticResource PrimaryButton}"/>
+                  <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="鼠标控制" Style="{StaticResource H2}"/>
+                    <TextBlock x:Name="MouseStatusText" Text="已关闭 · 开启后 X / Y 控制光标、Z 控制滚轮，四键执行映射" Style="{StaticResource Caption}" Margin="0,5,0,0"/>
+                  </StackPanel>
+                </DockPanel>
+                <Grid Margin="0,22,0,0">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                   <StackPanel>
-                    <StackPanel x:Name="ButtonLayoutRows"/>
-                    <WrapPanel Margin="0,10,0,0">
-                      <Button x:Name="ButtonLayoutSave" Content="保存" Style="{StaticResource PrimaryButton}" Height="32" Margin="0,0,8,0" AutomationProperties.Name="保存按键布局"/>
-                      <Button x:Name="ButtonLayoutReset" Content="恢复默认" Height="32" AutomationProperties.Name="恢复默认按键布局"/>
-                    </WrapPanel>
-                    <TextBlock x:Name="ButtonLayoutStatus" Style="{StaticResource SecondaryTextStyle}" Margin="0,8,0,0" AutomationProperties.Name="按键布局状态"/>
+                    <TextBlock x:Name="MouseSpeedText" Text="速度 900" Style="{StaticResource FieldLabel}"/>
+                    <Slider x:Name="MouseSpeedSlider" Minimum="100" Maximum="2400" Value="900" TickFrequency="50" IsSnapToTickEnabled="True" ToolTip="偏移越大，移动越快；此处调整整体速度。Windows 指针速度也会影响最终速度。"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="2">
+                    <TextBlock x:Name="MouseDeadZoneText" Text="死区 16" Style="{StaticResource FieldLabel}"/>
+                    <Slider x:Name="MouseDeadZoneSlider" Minimum="0" Maximum="100" Value="16" TickFrequency="1" IsSnapToTickEnabled="True" ToolTip="绝对值不超过死区的 X、Y 输入不移动光标，可用来抑制回中漂移。"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,2">
+                    <CheckBox x:Name="MouseInvertX" Content="反转 X" IsChecked="True" Margin="0,0,18,0"/>
+                    <CheckBox x:Name="MouseInvertY" Content="反转 Y" IsChecked="True"/>
+                  </StackPanel>
+                </Grid>
+                <Border Style="{StaticResource Tile}" Margin="0,20,0,0" Padding="16,10,10,10">
+                  <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="MouseButtonStatusText" Text="左键未锁定 · 开启后四键映射生效" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <Button x:Name="ReleaseLeftButton" Grid.Column="1" Content="释放左键" Style="{StaticResource MiniButton}" Background="{StaticResource CardBrush}" IsEnabled="False"/>
+                  </Grid>
+                </Border>
+                <DockPanel Margin="2,14,0,0">
+                  <CheckBox x:Name="WheelDominantAxis" DockPanel.Dock="Left" Content="主导轴过滤" IsChecked="True" Margin="0,0,14,0" VerticalAlignment="Center"
+                            ToolTip="光标移动和 Z 滚轮每次只响应一组，松手回中后重新判断。"/>
+                  <TextBlock x:Name="WheelDominantStatus" Style="{StaticResource Caption}" VerticalAlignment="Center"/>
+                </DockPanel>
+              </StackPanel>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <StackPanel>
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox x:Name="WheelEnabled" Content="启用 Z 滚轮" IsChecked="True" Margin="0,0,18,0"/>
+                    <CheckBox x:Name="WheelInvert" Content="反转方向"/>
+                  </StackPanel>
+                  <StackPanel Margin="0,0,16,0">
+                    <TextBlock Text="Z 轴滚轮" Style="{StaticResource H2}"/>
+                    <TextBlock x:Name="WheelStatusText" Text="开启鼠标控制后，Z+ 上滚、Z− 下滚；松手停止。" Style="{StaticResource Caption}" Margin="0,5,0,0"/>
+                  </StackPanel>
+                </DockPanel>
+                <Grid Margin="0,18,0,0">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                  <Border Style="{StaticResource Tile}">
+                    <StackPanel>
+                      <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <Path Data="M 5,10 L 5,1 M 1.5,4.5 L 5,1 L 8.5,4.5" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="向上滚动" Style="{StaticResource H3}"/>
+                      </StackPanel>
+                      <TextBlock x:Name="WheelUpGainText" Text="力度灵敏度 1.0×" Style="{StaticResource FieldLabel}"/>
+                      <Slider x:Name="WheelUpGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调上滚力度，越高越省力。"/>
+                      <TextBlock x:Name="WheelUpSpeedText" Text="上滚速度 6 格/秒" Style="{StaticResource FieldLabel}" Margin="0,12,0,7"/>
+                      <Slider x:Name="WheelUpSpeed" Minimum="1" Maximum="120" Value="6" TickFrequency="1" IsSnapToTickEnabled="True" ToolTip="Z 轴满偏移时的最大上滚速度，以格/秒计。实际滚动距离受系统和目标软件设置影响。"/>
+                      <TextBlock x:Name="WheelUpDeadZoneText" Text="回中死区 8%" Style="{StaticResource FieldLabel}" Margin="0,12,0,7"/>
+                      <Slider x:Name="WheelUpDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Grid.Column="2" Style="{StaticResource Tile}">
+                    <StackPanel>
+                      <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <Path Data="M 5,1 L 5,10 M 1.5,6.5 L 5,10 L 8.5,6.5" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="向下滚动" Style="{StaticResource H3}"/>
+                      </StackPanel>
+                      <TextBlock x:Name="WheelDownGainText" Text="力度灵敏度 1.0×" Style="{StaticResource FieldLabel}"/>
+                      <Slider x:Name="WheelDownGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调下滚力度，越高越省力。"/>
+                      <TextBlock x:Name="WheelDownSpeedText" Text="下滚速度 6 格/秒" Style="{StaticResource FieldLabel}" Margin="0,12,0,7"/>
+                      <Slider x:Name="WheelDownSpeed" Minimum="1" Maximum="120" Value="6" TickFrequency="1" IsSnapToTickEnabled="True" ToolTip="Z 轴满偏移时的最大下滚速度，以格/秒计。实际滚动距离受系统和目标软件设置影响。"/>
+                      <TextBlock x:Name="WheelDownDeadZoneText" Text="回中死区 8%" Style="{StaticResource FieldLabel}" Margin="0,12,0,7"/>
+                      <Slider x:Name="WheelDownDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True"/>
+                    </StackPanel>
+                  </Border>
+                </Grid>
+                <WrapPanel Margin="0,16,0,0">
+                  <Button x:Name="WheelCalibrateButton" Content="以当前 Z 为中心" Style="{StaticResource MiniButton}" Margin="0,0,8,0"/>
+                  <Button x:Name="WheelClearCenterButton" Content="清除 Z 校准" Style="{StaticResource MiniButton}" Margin="0,0,14,0"/>
+                  <TextBlock x:Name="WheelCenterText" Text="Z 中心 0" FontFamily="{StaticResource NumberFont}" FontSize="12" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                </WrapPanel>
+              </StackPanel>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <StackPanel>
+                <TextBlock Text="四键鼠标功能" Style="{StaticResource H2}"/>
+                <TextBlock Text="每个按键独立设置；“左键锁定 / 释放”按一次保持按住，再按一次松开。" Style="{StaticResource Caption}" Margin="0,6,0,0"/>
+                <TextBlock x:Name="MappingHelpText" Text="先确认四个物理按键对应的逻辑键编号，再选择鼠标功能。" Style="{StaticResource Caption}" Margin="0,3,0,0"/>
+                <UniformGrid x:Name="ButtonsHost" Columns="4" Rows="1" Margin="-6,16,-6,0"/>
+              </StackPanel>
+            </ContentControl>
+            <TextBlock Text="切回设备测试会停止鼠标控制并释放锁定；也可以随时按 Ctrl+Alt+F8，或点击左侧“停止并释放”。" Style="{StaticResource Caption}" Margin="4,14,4,0"/>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+
+      <!-- ===== 摇杆模拟 ===== -->
+      <Grid x:Name="JoystickPage" Grid.Row="1" Visibility="Collapsed">
+        <ScrollViewer Style="{StaticResource PageScroller}">
+          <StackPanel Margin="8,14,16,28">
+            <ContentControl Style="{StaticResource Card}">
+              <StackPanel>
+                <Grid>
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                  <TextBlock Text="输出目标" Style="{StaticResource H2}" Margin="0,0,16,0"/>
+                  <ComboBox x:Name="StickOutputMode" Grid.Column="1" MaxWidth="360" HorizontalAlignment="Left" MinWidth="240" Margin="0,0,16,0"/>
+                  <Button x:Name="StickToggleButton" Grid.Column="2" Content="开启摇杆模拟" Style="{StaticResource PrimaryButton}"/>
+                </Grid>
+                <TextBlock x:Name="StickStatusText" Text="已关闭 · 右摇杆回中" Style="{StaticResource Caption}" Margin="0,12,0,0"/>
+                <DockPanel Margin="0,12,0,0">
+                  <CheckBox x:Name="StickDominantAxis" DockPanel.Dock="Left" Content="主导轴过滤" IsChecked="True" Margin="0,0,14,0" VerticalAlignment="Center"
+                            ToolTip="转向和 Z 缩放每次只响应一组，松手回中后重新判断。"/>
+                  <TextBlock x:Name="StickDominantStatus" Style="{StaticResource Caption}" VerticalAlignment="Center"/>
+                </DockPanel>
+              </StackPanel>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <StackPanel>
+                <DockPanel>
+                  <Border DockPanel.Dock="Right" Background="{StaticResource TileBrush}" CornerRadius="10" Padding="10,4" VerticalAlignment="Center">
+                    <TextBlock x:Name="StickButtonState" FontSize="11.5" Foreground="{StaticResource MutedBrush}"/>
+                  </Border>
+                  <TextBlock Text="手柄按键映射" Style="{StaticResource H2}"/>
+                </DockPanel>
+                <UniformGrid x:Name="StickButtonsHost" Columns="4" Rows="1" Margin="-6,14,-6,0"/>
+                <TextBlock Text="按键编号沿用鼠标映射页。设为实体启停的键只负责启停。" Style="{StaticResource Caption}" Margin="0,12,0,0"/>
+              </StackPanel>
+            </ContentControl>
+
+            <Grid x:Name="StickPreviewGrid" Margin="0,16,0,0">
+              <Grid.ColumnDefinitions><ColumnDefinition Width="1.25*"/><ColumnDefinition Width="*" MinWidth="250"/></Grid.ColumnDefinitions>
+              <ContentControl Style="{StaticResource Card}" Margin="0,0,16,0">
+                <StackPanel>
+                  <DockPanel>
+                    <Button x:Name="StickResetViewButton" DockPanel.Dock="Right" Content="重置视角与缩放" Style="{StaticResource MiniButton}"/>
+                    <TextBlock Text="固定中心视角" Style="{StaticResource H2}"/>
+                  </DockPanel>
+                  <Grid Margin="0,14,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <TextBlock Text="预览大小" FontSize="12" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                    <Slider x:Name="StickPreviewSize" Grid.Column="1" TickFrequency="5" SmallChange="5" LargeChange="15" MaxWidth="220"
+                            IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="14,0" HorizontalAlignment="Stretch"
+                            AutomationProperties.Name="预览大小" ToolTip="调整预览区域的宽度和高度"/>
+                    <TextBlock x:Name="StickPreviewSizeText" Grid.Column="2" Text="100%" MinWidth="40" TextAlignment="Right"
+                               FontFamily="{StaticResource NumberFont}" FontSize="12" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                  </Grid>
+                  <Grid Margin="0,14,0,10">
+                    <Border x:Name="StickCameraHost" Style="{StaticResource Well}"/>
+                    <Border Style="{StaticResource WellRim}"/>
+                  </Grid>
+                  <TextBlock x:Name="StickCameraText" Text="Yaw 0° · Pitch 0°" FontFamily="{StaticResource NumberFont}" FontSize="11.5" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap"/>
+                </StackPanel>
+              </ContentControl>
+              <ContentControl Grid.Column="1" Style="{StaticResource Card}" VerticalAlignment="Top">
+                <StackPanel>
+                  <TextBlock Text="右摇杆" Style="{StaticResource H2}"/>
+                  <Border x:Name="RightStickHost" Height="226" Margin="0,8,0,6"/>
+                  <TextBlock x:Name="StickValueText" Text="X 0.000   Y 0.000" FontFamily="{StaticResource NumberFont}" FontSize="19" FontWeight="SemiBold"
+                             Foreground="{StaticResource InkBrush}" HorizontalAlignment="Center"/>
+                  <TextBlock x:Name="StickIntegerText" Text="RX 0   RY 0" FontFamily="{StaticResource NumberFont}" FontSize="11.5"
+                             Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+              </ContentControl>
+            </Grid>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <StackPanel>
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <CheckBox x:Name="ZoomEnabled" Content="启用 Z 轴" IsChecked="True" Margin="0,0,18,0"/>
+                    <CheckBox x:Name="ZoomInvert" Content="反转方向"/>
+                  </StackPanel>
+                  <TextBlock Text="Z 轴缩放 · LT / RT" Style="{StaticResource H2}"/>
+                </DockPanel>
+                <Grid Margin="0,16,0,0">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                  <Border Style="{StaticResource Tile}">
+                    <StackPanel>
+                      <Grid Margin="0,0,0,8">
+                        <TextBlock Text="LT · 缩小" Style="{StaticResource H3}"/>
+                        <TextBlock x:Name="ZoomLeftValue" Text="0 / 255" HorizontalAlignment="Right" FontFamily="{StaticResource NumberFont}" FontWeight="SemiBold" Foreground="{DynamicResource AccentTextBrush}" FontSize="12.5"/>
+                      </Grid>
+                      <ProgressBar x:Name="ZoomLeftMeter" Minimum="0" Maximum="255" Value="0" Margin="0,0,0,16"/>
+                      <TextBlock x:Name="ZoomOutGainText" Text="力度灵敏度 1.0×" Style="{StaticResource FieldLabel}"/>
+                      <Slider x:Name="ZoomOutGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调节缩小的力度，越高越省力。"/>
+                      <TextBlock x:Name="ZoomOutSpeedText" Text="缩小速度 50%" Style="{StaticResource FieldLabel}" Margin="0,12,0,7"/>
+                      <Slider x:Name="ZoomOutSpeed" Minimum="5" Value="50" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="超过 100% 时，本页缩小更快，虚拟扳机在较小的 Z 轴偏移时达到满值。"/>
+                      <TextBlock x:Name="ZoomOutDeadZoneText" Text="回中死区 8%" Style="{StaticResource FieldLabel}" Margin="0,12,0,7"/>
+                      <Slider x:Name="ZoomOutDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True" ToolTip="只调节缩小方向的回中死区。"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Grid.Column="2" Style="{StaticResource Tile}">
+                    <StackPanel>
+                      <Grid Margin="0,0,0,8">
+                        <TextBlock Text="RT · 放大" Style="{StaticResource H3}"/>
+                        <TextBlock x:Name="ZoomRightValue" Text="0 / 255" HorizontalAlignment="Right" FontFamily="{StaticResource NumberFont}" FontWeight="SemiBold" Foreground="{DynamicResource AccentTextBrush}" FontSize="12.5"/>
+                      </Grid>
+                      <ProgressBar x:Name="ZoomRightMeter" Minimum="0" Maximum="255" Value="0" Margin="0,0,0,16"/>
+                      <TextBlock x:Name="ZoomInGainText" Text="力度灵敏度 1.0×" Style="{StaticResource FieldLabel}"/>
+                      <Slider x:Name="ZoomInGain" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True" ToolTip="只调节放大的力度，越高越省力。"/>
+                      <TextBlock x:Name="ZoomInSpeedText" Text="放大速度 50%" Style="{StaticResource FieldLabel}" Margin="0,12,0,7"/>
+                      <Slider x:Name="ZoomInSpeed" Minimum="5" Value="50" TickFrequency="5" IsSnapToTickEnabled="True" ToolTip="超过 100% 时，本页放大更快，虚拟扳机在较小的 Z 轴偏移时达到满值。"/>
+                      <TextBlock x:Name="ZoomInDeadZoneText" Text="回中死区 8%" Style="{StaticResource FieldLabel}" Margin="0,12,0,7"/>
+                      <Slider x:Name="ZoomInDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True" ToolTip="只调节放大方向的回中死区。"/>
+                    </StackPanel>
+                  </Border>
+                </Grid>
+                <TextBlock x:Name="ZoomHintText" Text="Z+ 放大 · Z− 缩小。两方向的力度、速度和死区分别调节；外部软件需绑定 LT / RT 到缩放。" Style="{StaticResource Caption}" Margin="0,14,0,0"/>
+              </StackPanel>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <StackPanel>
+                <TextBlock Text="轴映射与手感" Style="{StaticResource H2}"/>
+                <TextBlock Text="内置设置使用平移 X / Y，推动操纵帽控制左右和上下。可在下方选择其他通道。" Style="{StaticResource Caption}" Margin="0,6,0,0"/>
+                <Grid Margin="0,18,0,0">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                  <Border Style="{StaticResource Tile}">
+                    <StackPanel>
+                      <TextBlock Text="右摇杆 X · 左右看" Style="{StaticResource H3}" Margin="0,0,0,10"/>
+                      <ComboBox x:Name="StickSourceX"/>
+                      <CheckBox x:Name="StickInvertX" Content="反转 X" Margin="0,12,0,0"/>
+                      <TextBlock x:Name="StickGainXText" Text="X 增益 1.0" Style="{StaticResource FieldLabel}" Margin="0,16,0,7"/>
+                      <Slider x:Name="StickGainX" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True"/>
+                    </StackPanel>
+                  </Border>
+                  <Border Grid.Column="2" Style="{StaticResource Tile}">
+                    <StackPanel>
+                      <TextBlock Text="右摇杆 Y · 上下看" Style="{StaticResource H3}" Margin="0,0,0,10"/>
+                      <ComboBox x:Name="StickSourceY"/>
+                      <CheckBox x:Name="StickInvertY" Content="反转 Y" IsChecked="True" Margin="0,12,0,0"/>
+                      <TextBlock x:Name="StickGainYText" Text="Y 增益 1.0" Style="{StaticResource FieldLabel}" Margin="0,16,0,7"/>
+                      <Slider x:Name="StickGainY" Minimum="0.1" Maximum="3" Value="1" TickFrequency="0.1" IsSnapToTickEnabled="True"/>
+                    </StackPanel>
+                  </Border>
+                </Grid>
+                <Grid Margin="0,18,0,0">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                  <StackPanel><TextBlock x:Name="StickDeadZoneText" Text="径向死区 0.08" Style="{StaticResource FieldLabel}"/><Slider x:Name="StickDeadZone" Minimum="0" Maximum="0.4" Value="0.08" TickFrequency="0.01" IsSnapToTickEnabled="True"/></StackPanel>
+                  <StackPanel Grid.Column="2"><TextBlock x:Name="StickGammaText" Text="响应曲线 1.5" Style="{StaticResource FieldLabel}"/><Slider x:Name="StickGamma" Minimum="1" Maximum="3" Value="1.5" TickFrequency="0.1" IsSnapToTickEnabled="True"/></StackPanel>
+                  <StackPanel Grid.Column="4"><TextBlock Text="实体按键启停" Style="{StaticResource FieldLabel}"/><ComboBox x:Name="StickToggleKey" Height="34"/></StackPanel>
+                </Grid>
+                <WrapPanel Margin="0,18,0,0">
+                  <Button x:Name="StickCalibrateButton" Content="以当前位置为中心" Style="{StaticResource MiniButton}" Margin="0,0,8,0"/>
+                  <Button x:Name="StickClearCenterButton" Content="清除校准" Style="{StaticResource MiniButton}" Margin="0,0,14,0"/>
+                  <TextBlock x:Name="StickCenterText" Text="中心：未校准" FontSize="12" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                </WrapPanel>
+              </StackPanel>
+            </ContentControl>
+            <TextBlock Text="持续偏转持续转向或缩放；松手后停止并保留视角与倍率。150 ms 无新数据时，右摇杆和两扳机归零。虚拟手柄需由目标软件绑定相应功能。" Style="{StaticResource Caption}" Margin="4,14,4,0"/>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+
+      <!-- ===== 3D 导航 ===== -->
+      <Grid x:Name="NavigationPage" Grid.Row="1" Visibility="Collapsed">
+        <ScrollViewer Style="{StaticResource PageScroller}">
+          <StackPanel Margin="8,14,16,28">
+            <ContentControl Style="{StaticResource Card}">
+              <StackPanel>
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="NavigationExportButton" Content="导出适配器 ZIP" Margin="0,0,10,0" Height="38"/>
+                    <Button x:Name="NavigationToggleButton" Content="开启导航" Style="{StaticResource PrimaryButton}" MinWidth="104"/>
+                  </StackPanel>
+                  <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                    <TextBlock Text="要控制的软件" Style="{StaticResource H2}"/>
+                    <TextBlock Text="选好后开启导航，再切到该软件的 3D 视图" Style="{StaticResource Caption}" Margin="0,5,0,0"/>
+                  </StackPanel>
+                </DockPanel>
+                <ComboBox x:Name="NavigationTargetPicker" SelectedValuePath="Tag" Visibility="Collapsed" AutomationProperties.Name="导航方式">
+                  <ComboBoxItem Content="Blender" Tag="Blender"/>
+                  <ComboBoxItem Content="Fusion 360 · 相机直连" Tag="FusionNative"/>
+                  <ComboBoxItem Content="FreeCAD（试用适配）" Tag="FreeCAD"/>
+                  <ComboBoxItem Content="Rhino 8（试用适配）" Tag="Rhino"/>
+                  <ComboBoxItem Content="全局适配 · 自动识别软件" Tag="Global"/>
+                  <ComboBoxItem Content="SOLIDWORKS · 六轴直连" Tag="SolidWorks"/>
+                </ComboBox>
+                <UniformGrid x:Name="NavigationTargetTiles" Columns="3" Margin="-6,12,-6,0"/>
+                <Border Background="{StaticResource TileBrush}" CornerRadius="12" Padding="14,10" Margin="0,10,0,0">
+                  <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="7" Height="7" Margin="0,0,10,0" VerticalAlignment="Center" Fill="{Binding Foreground, ElementName=NavigationStatusText}"/>
+                    <TextBlock x:Name="NavigationStatusText" FontSize="12.5" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center"/>
                   </StackPanel>
                 </Border>
-              </Grid>
-              <Grid>
-                <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                <StackPanel Margin="0,4,0,0"><TextBlock Text="配置文件" Style="{StaticResource SectionTitleStyle}"/><TextBlock Text="导入或导出配置" Style="{StaticResource SecondaryTextStyle}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel>
-                <Border Grid.Column="2" Style="{StaticResource PanelStyle}" Padding="16,14"><StackPanel><TextBlock Text="选择 SpaceKat 配置 ZIP 或一组配置 TXT 来替换。导入前会自动备份当前配置。" Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,0,0,10"/><WrapPanel><Button x:Name="ImportConfigurationButton" Content="导入并替换" Style="{StaticResource PrimaryButton}" Height="32" Margin="0,0,8,0"/><Button x:Name="ExportConfigurationButton" Content="导出配置 ZIP" Height="32"/></WrapPanel><TextBlock x:Name="ConfigurationStatusText" Style="{StaticResource SecondaryTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap"/></StackPanel></Border>
-              </Grid>
-            </StackPanel>
-          </ScrollViewer>
-        </Grid>
+              </StackPanel>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <StackPanel>
+                <DockPanel>
+                  <TextBlock DockPanel.Dock="Right" x:Name="NavigationValuesText" FontFamily="{StaticResource NumberFont}" FontSize="12" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center"/>
+                  <TextBlock Text="导航手感" Style="{StaticResource H2}"/>
+                </DockPanel>
+                <Grid Margin="0,18,0,0">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/><ColumnDefinition Width="28"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                  <StackPanel><TextBlock Text="平移与缩放" Style="{StaticResource FieldLabel}"/><Slider x:Name="NavigationLinear" Minimum="0.01" Maximum="3" Value="0.35" TickFrequency="0.01" SmallChange="0.01" LargeChange="0.05" IsSnapToTickEnabled="True" AutomationProperties.Name="平移与缩放速度"/></StackPanel>
+                  <StackPanel Grid.Column="2"><TextBlock Text="旋转" Style="{StaticResource FieldLabel}"/><Slider x:Name="NavigationAngular" Minimum="0.01" Maximum="3" Value="0.35" TickFrequency="0.01" SmallChange="0.01" LargeChange="0.05" IsSnapToTickEnabled="True" AutomationProperties.Name="旋转速度"/></StackPanel>
+                  <StackPanel Grid.Column="4"><TextBlock Text="回中死区" Style="{StaticResource FieldLabel}"/><Slider x:Name="NavigationDeadZone" Minimum="0" Maximum="100" Value="16" TickFrequency="1" IsSnapToTickEnabled="True" AutomationProperties.Name="回中死区"/></StackPanel>
+                </Grid>
+                <Border Style="{StaticResource Rule}" Margin="0,18,0,16"/>
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock Text="反转轴" FontSize="12" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                  <CheckBox x:Name="NavInvertX" Content="X" Margin="0,0,20,0"/>
+                  <CheckBox x:Name="NavInvertY" Content="Y" Margin="0,0,20,0"/>
+                  <CheckBox x:Name="NavInvertZ" Content="Z" Margin="0,0,20,0"/>
+                  <CheckBox x:Name="NavInvertRx" Content="Rx" Margin="0,0,20,0"/>
+                  <CheckBox x:Name="NavInvertRy" Content="Ry" Margin="0,0,20,0"/>
+                  <CheckBox x:Name="NavInvertRz" Content="Rz"/>
+                </StackPanel>
+              </StackPanel>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <StackPanel>
+                <TextBlock Text="按键映射" Style="{StaticResource H2}"/>
+                <UniformGrid x:Name="NavigationButtonsHost" Columns="4" Margin="-6,14,-6,0"/>
+                <TextBlock x:Name="NavigationButtonHelp" Style="{StaticResource Caption}" Margin="0,12,0,0"/>
+              </StackPanel>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <StackPanel>
+                <TextBlock Text="使用方法" Style="{StaticResource H2}"/>
+                <TextBlock x:Name="NavigationInstructionsText" Style="{StaticResource Body}" Margin="0,10,0,0"/>
+                <TextBlock Text="启用后切到目标软件即可操控。Ctrl+Alt+F8、断开设备或离开本页都会停止导航。" Style="{StaticResource Caption}" Margin="0,8,0,0"/>
+              </StackPanel>
+            </ContentControl>
+          </StackPanel>
+        </ScrollViewer>
       </Grid>
-    </Border>
+
+      <!-- ===== 设置 ===== -->
+      <Grid x:Name="SettingsPage" Grid.Row="1" Visibility="Collapsed">
+        <ScrollViewer Style="{StaticResource PageScroller}">
+          <StackPanel Margin="8,14,16,28">
+            <ContentControl Style="{StaticResource Card}">
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,2,16,0">
+                  <TextBlock Text="开机自启动" Style="{StaticResource H2}"/>
+                  <TextBlock Text="登录后的启动方式" Style="{StaticResource Caption}" Margin="0,5,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                  <CheckBox x:Name="StartupCheckBox" Content="登录 Windows 后打开 SpaceKat 小助手"/>
+                  <TextBlock x:Name="StartupStatusText" Style="{StaticResource Caption}" Margin="27,6,0,0"/>
+                </StackPanel>
+              </Grid>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,2,16,0">
+                  <TextBlock Text="主题色" Style="{StaticResource H2}"/>
+                  <TextBlock Text="按钮、滑块和选中状态的颜色" Style="{StaticResource Caption}" Margin="0,5,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                  <StackPanel x:Name="ThemeSwatches" Orientation="Horizontal"/>
+                  <TextBlock x:Name="ThemeStatusText" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                  <ComboBox x:Name="ThemePicker" Visibility="Collapsed"/>
+                </StackPanel>
+              </Grid>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,2,16,0">
+                  <TextBlock Text="按键布局" Style="{StaticResource H2}"/>
+                  <TextBlock Text="四个实体键的名称和显示顺序" Style="{StaticResource Caption}" Margin="0,5,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <StackPanel x:Name="ButtonLayoutRows"/>
+                  <WrapPanel Margin="0,8,0,0">
+                    <Button x:Name="ButtonLayoutSave" Content="保存" Style="{StaticResource PrimaryButton}" Height="34" Padding="22,0" Margin="0,0,8,0" AutomationProperties.Name="保存按键布局"/>
+                    <Button x:Name="ButtonLayoutReset" Content="恢复默认" AutomationProperties.Name="恢复默认按键布局"/>
+                    <TextBlock x:Name="ButtonLayoutStatus" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="14,0,0,0" AutomationProperties.Name="按键布局状态"/>
+                  </WrapPanel>
+                </StackPanel>
+              </Grid>
+            </ContentControl>
+
+            <ContentControl Style="{StaticResource Card}" Margin="0,16,0,0">
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="200"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,2,16,0">
+                  <TextBlock Text="配置文件" Style="{StaticResource H2}"/>
+                  <TextBlock Text="导入或导出全部设置" Style="{StaticResource Caption}" Margin="0,5,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Text="选择 SpaceKat 配置 ZIP 或一组配置 TXT 来替换。导入前会自动备份当前配置。" Style="{StaticResource Body}" Margin="0,0,0,14"/>
+                  <WrapPanel>
+                    <Button x:Name="ImportConfigurationButton" Content="导入并替换" Style="{StaticResource PrimaryButton}" Height="34" Margin="0,0,8,0"/>
+                    <Button x:Name="ExportConfigurationButton" Content="导出配置 ZIP"/>
+                  </WrapPanel>
+                  <TextBlock x:Name="ConfigurationStatusText" Style="{StaticResource StatusCaption}" Margin="0,10,0,0"/>
+                </StackPanel>
+              </Grid>
+            </ContentControl>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </Grid>
   </Grid>
 </UserControl>

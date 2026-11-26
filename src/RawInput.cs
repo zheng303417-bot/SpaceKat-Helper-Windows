@@ -18,6 +18,9 @@ namespace SpaceKatMonitor
         public uint ValidButtonsMask = UInt32.MaxValue;
         public bool HasButtonCaps;
 
+        /// <summary>Short name for the device picker; VID/PID stay in ToString and the tooltip path.</summary>
+        public string DisplayName { get { return String.IsNullOrWhiteSpace(Name) ? "六轴控制器" : Name; } }
+
         public override string ToString()
         {
             return String.Format("{0}  [VID {1:X4} / PID {2:X4}]",

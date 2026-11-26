@@ -14,6 +14,7 @@ namespace SpaceKatMonitor
             public double X, Y, Z;
             public V3(double x, double y, double z) { X = x; Y = y; Z = z; }
             public static V3 operator +(V3 a, V3 b) { return new V3(a.X + b.X, a.Y + b.Y, a.Z + b.Z); }
+            public static V3 operator -(V3 a, V3 b) { return new V3(a.X - b.X, a.Y - b.Y, a.Z - b.Z); }
         }
 
         private sealed class Face
@@ -23,13 +24,28 @@ namespace SpaceKatMonitor
             public Brush Fill;
         }
 
-        private static readonly Brush AxisX = Brush("#E76F65");
-        private static readonly Brush AxisY = Brush("#45A77B");
-        private static readonly Brush AxisZ = Brush("#5D8DDA");
-        private static readonly Brush Muted = Brush("#789098");
-        private static readonly Brush Teal = Brush("#008F87");
-        private static readonly Typeface LabelFace = new Typeface("Segoe UI");
-        private static readonly Typeface CaptionFace = new Typeface("Microsoft YaHei UI");
+        private static readonly Brush AxisX = Brush("#D9483F");
+        private static readonly Brush AxisY = Brush("#36996A");
+        private static readonly Brush AxisZ = Brush("#3E70D4");
+        private static readonly Brush Muted = Brush("#8C867D");
+        private static readonly Brush HintInk = Brush("#6E695F");
+        private static readonly Brush LiveDot = Brush("#2FAE6B");
+        private static readonly Brush LiveText = Brush("#1F8A55");
+        private static readonly Brush PillFill = Brush("#C8FFFFFF");
+        private static readonly Brush ShadowFill = Brush("#1C3C2D1E");
+        private static readonly Pen GridPen = FrozenPen("#DCD6CD", 0.8);
+        private static readonly Pen GridAxisPen = FrozenPen("#CFC8BD", 1);
+        private static readonly Pen ReferencePen = DashedPen("#BFB8AC", 1);
+        private static readonly Pen EdgePen = FrozenPen("#B9B1A5", 1.05);
+        private static readonly Pen OriginPen = FrozenPen("#8C867D", 1);
+        private static readonly Color FaceLight = Color.FromRgb(0xFF, 0xFF, 0xFF);
+        private static readonly Color FaceDark = Color.FromRgb(0xCC, 0xC4, 0xB8);
+        // Light comes from the viewer's upper left, so the top face reads brightest.
+        private static readonly V3 Light = Normalize(new V3(0.2, 0.8, 1.3));
+        private static readonly Typeface LabelFace = new Typeface(new FontFamily("Segoe UI Variable Display, Segoe UI"),
+            FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
+        private static readonly Typeface CaptionFace = new Typeface(new FontFamily("Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"),
+            FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
         private readonly CubeMotionModel motion = new CubeMotionModel();
 
         public SixAxisCubeView()
@@ -65,27 +81,31 @@ namespace SpaceKatMonitor
             base.OnRender(dc);
             double width = ActualWidth, height = ActualHeight;
             if (width < 10 || height < 10) return;
-            dc.DrawRoundedRectangle(Brush("#F5FAFB"), null, new Rect(0, 0, width, height), 10, 10);
-            Point center = new Point(width * 0.5, height * 0.45);
+            Point center = new Point(width * 0.5, height * 0.47);
             double scale = FitScale(width, height, center, motion.Pose);
 
-            DrawFloor(dc, center, scale);
+            DrawFloor(dc, center, scale, motion.Pose);
             DrawWorldAxes(dc, center, scale);
-            dc.PushOpacity(motion.HasData ? 1 : 0.48);
+            dc.PushOpacity(motion.HasData ? 1 : 0.5);
             DrawCube(dc, center, scale, motion.Pose);
             dc.Pop();
 
-            Brush stateBrush = motion.IsInputFresh ? Teal : Muted;
-            dc.DrawEllipse(stateBrush, null, new Point(17, 20), 3, 3);
-            DrawText(dc, !motion.HasData ? "等待六轴数据" : motion.IsInputFresh ? "实时六轴操控" : "数据已暂停 · 姿态保持",
-                new Point(27, 11), 11, stateBrush, false);
-            DrawGizmo(dc, new Point(41, height - 37));
-            DrawText(dc, "松手保持姿态 · 重置回到中心", new Point(Math.Max(95, width - 211), height - 26), 10, Muted, false);
+            bool fresh = motion.IsInputFresh;
+            string state = !motion.HasData ? "等待六轴数据" : fresh ? "实时六轴操控" : "数据已暂停 · 姿态保持";
+            FormattedText label = Text(state, 11.5, fresh ? LiveText : Muted, CaptionFace);
+            dc.DrawRoundedRectangle(PillFill, null, new Rect(14, 14, label.Width + 36, 26), 13, 13);
+            dc.DrawEllipse(fresh ? LiveDot : Muted, null, new Point(28, 27), 3.5, 3.5);
+            dc.DrawText(label, new Point(38, 27 - label.Height / 2));
+
+            FormattedText hint = Text("松手保持姿态 · 重置回到中心", 11, HintInk, CaptionFace);
+            Rect hintPill = new Rect(width - hint.Width - 38, height - 40, hint.Width + 24, 26);
+            dc.DrawRoundedRectangle(PillFill, null, hintPill, 13, 13);
+            dc.DrawText(hint, new Point(hintPill.X + 12, hintPill.Y + 13 - hint.Height / 2));
         }
 
         private static double FitScale(double width, double height, Point center, CubePose pose)
         {
-            double scale = Math.Min(width / 7.5, height / 5.4);
+            double scale = Math.Min(width / 6.4, height / 4.7);
             Point offset = Project(new V3(pose.X, pose.Y, pose.Z), new Point(), 1);
             // Every rotated vertex lies within radius sqrt(3)*0.61, and the
             // longest body axis is 1.25. Reserve room for labels and captions
@@ -93,32 +113,38 @@ namespace SpaceKatMonitor
             const double radius = 1.25;
             if (radius - offset.X > 0) scale = Math.Min(scale, (center.X - 30) / (radius - offset.X));
             if (radius + offset.X > 0) scale = Math.Min(scale, (width - center.X - 30) / (radius + offset.X));
-            if (radius - offset.Y > 0) scale = Math.Min(scale, (center.Y - 46) / (radius - offset.Y));
-            if (radius + offset.Y > 0) scale = Math.Min(scale, (height - center.Y - 64) / (radius + offset.Y));
+            if (radius - offset.Y > 0) scale = Math.Min(scale, (center.Y - 50) / (radius - offset.Y));
+            if (radius + offset.Y > 0) scale = Math.Min(scale, (height - center.Y - 40) / (radius + offset.Y));
             return Math.Max(1, scale);
         }
 
-        private static void DrawFloor(DrawingContext dc, Point center, double scale)
+        private static void DrawFloor(DrawingContext dc, Point center, double scale, CubePose pose)
         {
-            Pen grid = new Pen(Brush("#DDE9EB"), 0.8);
             const double floor = -1.65;
-            for (int i = -4; i <= 4; i++)
+            for (int i = -5; i <= 5; i++)
             {
-                double n = i * 0.45;
-                dc.DrawLine(grid, Project(new V3(n, -1.8, floor), center, scale), Project(new V3(n, 1.8, floor), center, scale));
-                dc.DrawLine(grid, Project(new V3(-1.8, n, floor), center, scale), Project(new V3(1.8, n, floor), center, scale));
+                double n = i * 0.42;
+                Pen pen = i == 0 ? GridAxisPen : GridPen;
+                dc.DrawLine(pen, Project(new V3(n, -2.1, floor), center, scale), Project(new V3(n, 2.1, floor), center, scale));
+                dc.DrawLine(pen, Project(new V3(-2.1, n, floor), center, scale), Project(new V3(2.1, n, floor), center, scale));
             }
-            // A soft, fixed reference shadow makes translations easy to see.
-            dc.DrawEllipse(Brush("#E4EFF0"), null, Project(new V3(0, 0, floor), center, scale), scale * 0.84, scale * 0.27);
+            // A dashed ring marks the centre; the soft shadow follows the cube,
+            // so translations read against a fixed reference.
+            dc.DrawEllipse(null, ReferencePen, Project(new V3(0, 0, floor), center, scale), scale * 0.86, scale * 0.5);
+            double lift = Math.Max(0, Math.Min(1, (pose.Z + 1.2) / 2.4));
+            dc.PushOpacity(1 - lift * 0.55);
+            dc.DrawEllipse(ShadowFill, null, Project(new V3(pose.X, pose.Y, floor), center, scale),
+                scale * (0.78 + lift * 0.2), scale * (0.45 + lift * 0.12));
+            dc.Pop();
         }
 
         private static void DrawWorldAxes(DrawingContext dc, Point center, double scale)
         {
             V3 origin = new V3(0, 0, -1.65);
-            dc.PushOpacity(0.48);
-            DrawArrow(dc, Project(origin, center, scale), Project(origin + new V3(2.0, 0, 0), center, scale), AxisX, 1.2, 5);
-            DrawArrow(dc, Project(origin, center, scale), Project(origin + new V3(0, 2.0, 0), center, scale), AxisY, 1.2, 5);
-            DrawArrow(dc, Project(origin, center, scale), Project(new V3(0, 0, 1.65), center, scale), AxisZ, 1.2, 5);
+            dc.PushOpacity(0.42);
+            DrawArrow(dc, Project(origin, center, scale), Project(origin + new V3(2.3, 0, 0), center, scale), AxisX, 1.2, 5);
+            DrawArrow(dc, Project(origin, center, scale), Project(origin + new V3(0, 2.3, 0), center, scale), AxisY, 1.2, 5);
+            DrawArrow(dc, Project(origin, center, scale), Project(new V3(0, 0, 1.75), center, scale), AxisZ, 1.2, 5);
             dc.Pop();
         }
 
@@ -134,30 +160,32 @@ namespace SpaceKatMonitor
             for (int i = 0; i < local.Length; i++) world[i] = Rotate(local[i], pose) + position;
             int[][] indices = { new[] {0,3,2,1}, new[] {4,5,6,7}, new[] {0,1,5,4},
                 new[] {3,7,6,2}, new[] {0,4,7,3}, new[] {1,2,6,5} };
-            string[] colors = { "#B5D9D5", "#D8F0EA", "#8FC6BE", "#ABD8D1", "#79B8B1", "#A5DAD2" };
             List<Face> faces = new List<Face>();
             for (int faceIndex = 0; faceIndex < indices.Length; faceIndex++)
             {
                 Point[] points = new Point[4];
                 double depth = 0;
+                V3 middle = new V3(0, 0, 0);
                 for (int vertex = 0; vertex < 4; vertex++)
                 {
                     V3 v = world[indices[faceIndex][vertex]];
                     points[vertex] = Project(v, center, scale);
                     depth += v.X + v.Y + v.Z;
+                    middle = middle + v;
                 }
-                faces.Add(new Face { Points = points, Depth = depth, Fill = Brush(colors[faceIndex]) });
+                V3 normal = Normalize(new V3(middle.X / 4 - position.X, middle.Y / 4 - position.Y, middle.Z / 4 - position.Z));
+                double lit = 0.32 + 0.68 * Math.Max(0, Dot(normal, Light));
+                faces.Add(new Face { Points = points, Depth = depth, Fill = Shade(lit) });
             }
             faces.Sort(delegate(Face a, Face b) { return a.Depth.CompareTo(b.Depth); });
-            Pen edge = new Pen(Brush("#75ABA5"), 1.3);
-            foreach (Face face in faces) dc.DrawGeometry(face.Fill, edge, Polygon(face.Points));
+            foreach (Face face in faces) dc.DrawGeometry(face.Fill, EdgePen, Polygon(face.Points));
 
-            // Body-fixed colored axes make each rotation directly visible.
+            // Body-fixed coloured axes make each rotation directly visible.
             Point projectedOrigin = Project(position, center, scale);
             DrawLocalAxis(dc, projectedOrigin, Project(Rotate(new V3(1.25, 0, 0), pose) + position, center, scale), AxisX, "X");
             DrawLocalAxis(dc, projectedOrigin, Project(Rotate(new V3(0, 1.25, 0), pose) + position, center, scale), AxisY, "Y");
             DrawLocalAxis(dc, projectedOrigin, Project(Rotate(new V3(0, 0, 1.25), pose) + position, center, scale), AxisZ, "Z");
-            dc.DrawEllipse(Brush("#FFFFFF"), new Pen(Brush("#7CA9A8"), 1), projectedOrigin, 2.5, 2.5);
+            dc.DrawEllipse(Brushes.White, OriginPen, projectedOrigin, 2.8, 2.8);
         }
 
         private static V3 Rotate(V3 v, CubePose pose)
@@ -179,21 +207,12 @@ namespace SpaceKatMonitor
 
         private void DrawLocalAxis(DrawingContext dc, Point from, Point to, Brush color, string label)
         {
-            DrawArrow(dc, from, to, color, 2.0, 6);
+            DrawArrow(dc, from, to, color, 2.2, 7);
             Vector direction = to - from;
             if (direction.Length > 0.01) direction.Normalize();
-            Point labelPoint = to + direction * 11;
-            DrawText(dc, label, new Point(labelPoint.X - 4, labelPoint.Y - 9), 13, color, true);
-        }
-
-        private void DrawGizmo(DrawingContext dc, Point center)
-        {
-            DrawArrow(dc, center, new Point(center.X + 20, center.Y + 11), AxisX, 1.8, 4);
-            DrawArrow(dc, center, new Point(center.X - 20, center.Y + 11), AxisY, 1.8, 4);
-            DrawArrow(dc, center, new Point(center.X, center.Y - 24), AxisZ, 1.8, 4);
-            DrawText(dc, "X", new Point(center.X + 24, center.Y + 5), 10, AxisX, true);
-            DrawText(dc, "Y", new Point(center.X - 32, center.Y + 5), 10, AxisY, true);
-            DrawText(dc, "Z", new Point(center.X - 3, center.Y - 38), 10, AxisZ, true);
+            Point labelPoint = to + direction * 12;
+            FormattedText text = Text(label, 13, color, LabelFace);
+            dc.DrawText(text, new Point(labelPoint.X - text.Width / 2, labelPoint.Y - text.Height / 2));
         }
 
         private static void DrawArrow(DrawingContext dc, Point from, Point to, Brush color, double thickness, double head)
@@ -202,9 +221,29 @@ namespace SpaceKatMonitor
             if (direction.Length < 0.1) return;
             direction.Normalize();
             Vector perpendicular = new Vector(-direction.Y, direction.X);
-            dc.DrawLine(new Pen(color, thickness), from, to);
             Point foot = to - direction * head;
-            dc.DrawGeometry(color, null, Polygon(new[] { to, foot + perpendicular * head * 0.45, foot - perpendicular * head * 0.45 }));
+            Pen pen = new Pen(color, thickness) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Flat };
+            dc.DrawLine(pen, from, foot);
+            dc.DrawGeometry(color, null, Polygon(new[] { to, foot + perpendicular * head * 0.48, foot - perpendicular * head * 0.48 }));
+        }
+
+        private static Brush Shade(double t)
+        {
+            t = Math.Max(0, Math.Min(1, t));
+            SolidColorBrush brush = new SolidColorBrush(Color.FromRgb(
+                (byte)(FaceDark.R + (FaceLight.R - FaceDark.R) * t),
+                (byte)(FaceDark.G + (FaceLight.G - FaceDark.G) * t),
+                (byte)(FaceDark.B + (FaceLight.B - FaceDark.B) * t)));
+            brush.Freeze();
+            return brush;
+        }
+
+        private static double Dot(V3 a, V3 b) { return a.X * b.X + a.Y * b.Y + a.Z * b.Z; }
+
+        private static V3 Normalize(V3 v)
+        {
+            double length = Math.Sqrt(Dot(v, v));
+            return length < 1e-9 ? new V3(0, 0, 1) : new V3(v.X / length, v.Y / length, v.Z / length);
         }
 
         private static Geometry Polygon(Point[] points)
@@ -226,11 +265,24 @@ namespace SpaceKatMonitor
             return brush;
         }
 
-        private void DrawText(DrawingContext dc, string text, Point at, double size, Brush color, bool axisLabel)
+        private static Pen FrozenPen(string hex, double thickness)
         {
-            FormattedText formatted = new FormattedText(text, CultureInfo.GetCultureInfo("zh-CN"), FlowDirection.LeftToRight,
-                axisLabel ? LabelFace : CaptionFace, size, color, VisualTreeHelper.GetDpi(this).PixelsPerDip);
-            dc.DrawText(formatted, at);
+            Pen pen = new Pen(Brush(hex), thickness) { LineJoin = PenLineJoin.Round };
+            pen.Freeze();
+            return pen;
+        }
+
+        private static Pen DashedPen(string hex, double thickness)
+        {
+            Pen pen = new Pen(Brush(hex), thickness) { DashStyle = new DashStyle(new double[] { 3, 3 }, 0) };
+            pen.Freeze();
+            return pen;
+        }
+
+        private FormattedText Text(string text, double size, Brush color, Typeface face)
+        {
+            return new FormattedText(text, CultureInfo.GetCultureInfo("zh-CN"), FlowDirection.LeftToRight,
+                face, size, color, VisualTreeHelper.GetDpi(this).PixelsPerDip);
         }
     }
 }

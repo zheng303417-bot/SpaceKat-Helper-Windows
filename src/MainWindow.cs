@@ -26,9 +26,7 @@ namespace SpaceKatMonitor
         {
             public Border Panel;
             public TextBlock Value;
-            public Grid Track;
-            public Border Negative;
-            public Border Positive;
+            public AxisGauge Gauge;
         }
 
         private sealed class ButtonCard
@@ -42,6 +40,8 @@ namespace SpaceKatMonitor
             public ComboBox MouseAction;
             public Button Learn;
             public Border TestPanel;
+            public Grid TestShell;
+            public Border TestGlow;
             public TextBlock TestTitle;
             public Ellipse TestDot;
             public TextBlock TestState;
@@ -52,12 +52,19 @@ namespace SpaceKatMonitor
             public DateTime FlashUntil;
         }
 
-        private static readonly Brush Ink = ColorBrush("#15233B");
-        private static readonly Brush Muted = ColorBrush("#505F76");
-        private static readonly Brush Line = ColorBrush("#DCE3EE");
-        private static readonly Brush Orange = ColorBrush("#B5751E");
-        private static readonly Brush QuietDot = ColorBrush("#A9B8BD");
-        private static readonly Brush ErrorBrush = ColorBrush("#B64D47");
+        private static readonly Brush Ink = ColorBrush("#1F1E1C");
+        private static readonly Brush Muted = ColorBrush("#6B665E");
+        private static readonly Brush Dim = ColorBrush("#A39D94");
+        private static readonly Brush Warn = ColorBrush("#8F530A");
+        private static readonly Brush QuietDot = ColorBrush("#D3CDC3");
+        private static readonly Brush ErrorBrush = ColorBrush("#B83A2A");
+        private static readonly Brush Live = ColorBrush("#17703F");
+        private static readonly Brush LiveDot = ColorBrush("#2FAE6B");
+        private static readonly Brush TileFill = ColorBrush("#F4F2EE");
+        private static readonly Brush FieldOnTile = ColorBrush("#FBFAF7");
+        private static readonly Brush AxisX = ColorBrush("#D9483F");
+        private static readonly Brush AxisY = ColorBrush("#36996A");
+        private static readonly Brush AxisZ = ColorBrush("#3E70D4");
         private readonly UserControl _root;
         private readonly ComboBox _deviceSelector;
         private readonly TextBlock _noDeviceText;
@@ -82,6 +89,7 @@ namespace SpaceKatMonitor
         private readonly TextBlock _pageTitle;
         private readonly TextBlock _pageDescription;
         private readonly TextBlock _globalMouseStatus;
+        private readonly Ellipse _globalStatusDot;
         private readonly Button _globalStop;
         private readonly SixAxisCubeView _cubeView;
         private string _currentPage = "test";
@@ -151,13 +159,13 @@ namespace SpaceKatMonitor
             Title = Program.ProductName + " " + Program.Version;
             using (Stream icon = typeof(MainWindow).Assembly.GetManifestResourceStream("SpaceKat.Joystick.ico"))
                 Icon = BitmapFrame.Create(icon, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-            Width = 1180;
+            Width = Math.Max(1000, Math.Min(1240, SystemParameters.WorkArea.Width - 40));
             Height = Math.Min(960, Math.Max(650, SystemParameters.WorkArea.Height - 50));
-            MinWidth = 980;
+            MinWidth = 1000;
             MinHeight = 650;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
-            Background = ColorBrush("#F4F7F8");
-            FontFamily = new FontFamily("Microsoft YaHei UI");
+            Background = ColorBrush("#E9E6E0");
+            FontFamily = new FontFamily("Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI");
             using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("MainWindow.xaml"))
             {
                 if (stream == null)
@@ -186,6 +194,7 @@ namespace SpaceKatMonitor
             _pageTitle = Find<TextBlock>("PageTitleText");
             _pageDescription = Find<TextBlock>("PageDescriptionText");
             _globalMouseStatus = Find<TextBlock>("GlobalMouseStatusText");
+            _globalStatusDot = Find<Ellipse>("GlobalStatusDot");
             _globalStop = Find<Button>("GlobalStopButton");
             _testNav.Click += delegate { ShowPage("test"); };
             _mappingNav.Click += delegate { ShowPage("mapping"); };
@@ -278,6 +287,7 @@ namespace SpaceKatMonitor
             InitializeNavigation();
             InitializeSettings();
             InitializeButtonLayout();
+            SourceInitialized += delegate { ApplyWindowChrome(); };
             SourceInitialized += InitializeInput;
             Closed += OnClosed;
 
@@ -338,11 +348,25 @@ namespace SpaceKatMonitor
             SetNavStyle(_settingsNav, _currentPage == "settings");
         }
 
-        private void SetNavStyle(Button button, bool active)
+        private static void SetNavStyle(Button button, bool active)
         {
-            button.SetResourceReference(BackgroundProperty, active ? "AccentTintBrush" : "RailIdleBrush");
-            button.SetResourceReference(ForegroundProperty, active ? "InkBrush" : "RailTextBrush");
-            button.SetResourceReference(BorderBrushProperty, active ? "AccentEdgeBrush" : "RailIdleBrush");
+            button.Tag = active ? "on" : null;
+        }
+
+        // Primary toggles read as an inviting accent key while idle and as a
+        // calm graphite "stop" key while their output is running.
+        private static void SetRunButton(Button button, bool running)
+        {
+            string state = running ? "running" : "idle";
+            if (Equals(button.Tag, state)) return;
+            button.Tag = state;
+            button.SetResourceReference(BackgroundProperty, running ? "GraphiteBrush" : "AccentBrush");
+            button.SetResourceReference(ForegroundProperty, running ? "OnGraphiteBrush" : "OnAccentBrush");
+        }
+
+        private static string FormatAxis(short value)
+        {
+            return value < 0 ? "−" + (-(int)value).ToString(CultureInfo.InvariantCulture) : value.ToString(CultureInfo.InvariantCulture);
         }
 
         private T Find<T>(string name) where T : FrameworkElement
@@ -363,50 +387,29 @@ namespace SpaceKatMonitor
         private void BuildAxisCards(UniformGrid host)
         {
             string[] names = { "X", "Y", "Z", "Rx", "Ry", "Rz" };
-            string[] captions = { "平移 / X", "平移 / Y", "平移 / Z", "旋转 / X", "旋转 / Y", "旋转 / Z" };
+            string[] captions = { "平移", "平移", "平移", "旋转", "旋转", "旋转" };
+            Brush[] colors = { AxisX, AxisY, AxisZ, AxisX, AxisY, AxisZ };
+            FontFamily numbers = (FontFamily)_root.Resources["NumberFont"];
             for (int i = 0; i < _axisCards.Length; i++)
             {
                 AxisCard card = new AxisCard();
-                card.Panel = new Border
+                StackPanel cell = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 8, 0, 8) };
+                Grid ring = new Grid { Width = 104, Height = 104 };
+                card.Gauge = new AxisGauge(colors[i]);
+                ring.Children.Add(card.Gauge);
+                card.Value = new TextBlock
                 {
-                    Background = Brushes.White, BorderBrush = Line, BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 10, 14, 9), Margin = new Thickness(5, 0, 5, 10)
+                    Text = "—", FontFamily = numbers, FontSize = 22, FontWeight = FontWeights.SemiBold, Foreground = QuietDot,
+                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
                 };
-                Grid content = new Grid();
-                content.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                content.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                content.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                content.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                Grid heading = new Grid();
-                TextBlock axisName = new TextBlock { Text = names[i], FontSize = 13, FontWeight = FontWeights.SemiBold };
-                axisName.SetResourceReference(TextBlock.ForegroundProperty, "AccentBrush");
-                heading.Children.Add(axisName);
-                heading.Children.Add(new TextBlock { Text = captions[i], FontSize = 10, Foreground = Muted, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center });
-                content.Children.Add(heading);
-                card.Value = new TextBlock { Text = "—", FontFamily = new FontFamily("Consolas"), FontSize = 30, Foreground = Ink, Margin = new Thickness(0, 5, 0, 5) };
-                Grid.SetRow(card.Value, 1);
-                content.Children.Add(card.Value);
-                card.Track = new Grid { Height = 7, Background = ColorBrush("#EDF3F4"), ClipToBounds = true };
-                card.Track.ColumnDefinitions.Add(new ColumnDefinition());
-                card.Track.ColumnDefinitions.Add(new ColumnDefinition());
-                card.Negative = new Border { Background = ColorBrush("#58A7B8"), Width = 0, HorizontalAlignment = HorizontalAlignment.Right };
-                card.Positive = new Border { Width = 0, HorizontalAlignment = HorizontalAlignment.Left };
-                card.Positive.SetResourceReference(Border.BackgroundProperty, "AccentBrush");
-                Grid.SetColumn(card.Positive, 1);
-                card.Track.Children.Add(card.Negative);
-                card.Track.Children.Add(card.Positive);
-                Border centerLine = new Border { Background = ColorBrush("#9DB3BA"), Width = 1, HorizontalAlignment = HorizontalAlignment.Center };
-                Grid.SetColumnSpan(centerLine, 2);
-                card.Track.Children.Add(centerLine);
-                Grid.SetRow(card.Track, 2);
-                content.Children.Add(card.Track);
-                Grid labels = new Grid { Margin = new Thickness(0, 5, 0, 0) };
-                labels.Children.Add(new TextBlock { Text = "−512", FontSize = 9, Foreground = QuietDot, FontFamily = new FontFamily("Consolas") });
-                labels.Children.Add(new TextBlock { Text = "0", FontSize = 9, Foreground = QuietDot, HorizontalAlignment = HorizontalAlignment.Center, FontFamily = new FontFamily("Consolas") });
-                labels.Children.Add(new TextBlock { Text = "+511", FontSize = 9, Foreground = QuietDot, HorizontalAlignment = HorizontalAlignment.Right, FontFamily = new FontFamily("Consolas") });
-                Grid.SetRow(labels, 3);
-                content.Children.Add(labels);
-                card.Panel.Child = content;
+                TextOptions.SetTextFormattingMode(card.Value, TextFormattingMode.Ideal);
+                ring.Children.Add(card.Value);
+                cell.Children.Add(ring);
+                StackPanel label = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 6, 0, 0) };
+                label.Children.Add(new TextBlock { Text = names[i], FontFamily = numbers, FontSize = 13, FontWeight = FontWeights.Bold, Foreground = colors[i] });
+                label.Children.Add(new TextBlock { Text = captions[i], FontSize = 12, Foreground = Muted, Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
+                cell.Children.Add(label);
+                card.Panel = new Border { Child = cell };
                 host.Children.Add(card.Panel);
                 _axisCards[i] = card;
             }
@@ -420,26 +423,27 @@ namespace SpaceKatMonitor
                 card.LogicalBit = i;
                 card.Panel = new Border
                 {
-                    Background = Brushes.White, BorderBrush = Line, BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 10, 14, 10), Margin = new Thickness(5, 0, 5, 0)
+                    Background = TileFill, BorderBrush = Brushes.Transparent, BorderThickness = new Thickness(1.5),
+                    CornerRadius = new CornerRadius(16), Padding = new Thickness(16, 14, 16, 16), Margin = new Thickness(6, 0, 6, 0)
                 };
                 StackPanel content = new StackPanel();
                 Grid heading = new Grid();
-                card.Title = new TextBlock { FontSize = 12, FontWeight = FontWeights.SemiBold,
+                card.Title = new TextBlock { FontSize = 13, FontWeight = FontWeights.SemiBold, Foreground = Ink,
                     Margin = new Thickness(0, 0, 14, 0), TextTrimming = TextTrimming.CharacterEllipsis };
                 heading.Children.Add(card.Title);
                 card.Dot = new Ellipse { Width = 8, Height = 8, Fill = QuietDot, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
                 heading.Children.Add(card.Dot);
                 content.Children.Add(heading);
-                card.State = new TextBlock { Text = "等待数据", FontSize = 20, FontWeight = FontWeights.SemiBold, Foreground = Muted, Margin = new Thickness(0, 8, 0, 4) };
+                card.State = new TextBlock { Text = "等待数据", FontFamily = (FontFamily)_root.Resources["DisplayFont"], FontSize = 21,
+                    FontWeight = FontWeights.SemiBold, Foreground = Muted, Margin = new Thickness(0, 10, 0, 2) };
                 content.Children.Add(card.State);
-                card.Count = new TextBlock { Text = "触发 0 次", FontSize = 11, Foreground = Muted, Margin = new Thickness(0, 0, 0, 9) };
+                card.Count = new TextBlock { Text = "触发 0 次", FontSize = 11.5, Foreground = Muted, Margin = new Thickness(0, 0, 0, 16) };
                 content.Children.Add(card.Count);
                 Grid mappingRow = new Grid();
                 mappingRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 mappingRow.ColumnDefinitions.Add(new ColumnDefinition());
-                mappingRow.Children.Add(new TextBlock { Text = "逻辑键", Foreground = Muted, FontSize = 11, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center });
-                card.Mapping = new ComboBox { Height = 28, FontSize = 11, MinWidth = 52, ToolTip = "选择此物理按键对应的固件逻辑按键编号（1–32）" };
+                mappingRow.Children.Add(new TextBlock { Text = "逻辑键", Foreground = Muted, FontSize = 12, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center });
+                card.Mapping = new ComboBox { Height = 34, MinWidth = 60, Background = FieldOnTile, ToolTip = "选择此物理按键对应的固件逻辑按键编号（1–32）" };
                 for (int logical = 1; logical <= 32; logical++)
                     card.Mapping.Items.Add(logical);
                 card.Mapping.SelectedIndex = i;
@@ -459,12 +463,12 @@ namespace SpaceKatMonitor
                 Grid.SetColumn(card.Mapping, 1);
                 mappingRow.Children.Add(card.Mapping);
                 content.Children.Add(mappingRow);
-                card.Learn = new Button { Content = "学习此键", Height = 27, FontSize = 10,
-                    Margin = new Thickness(0, 7, 0, 0), Padding = new Thickness(8, 0, 8, 0), Tag = card };
+                card.Learn = new Button { Content = "学习此键", Style = (Style)_root.Resources["MiniButton"], Background = FieldOnTile,
+                    Margin = new Thickness(0, 8, 0, 0), Tag = card };
                 card.Learn.Click += BeginLearning;
                 content.Children.Add(card.Learn);
-                content.Children.Add(new TextBlock { Text = "鼠标功能", Foreground = Muted, FontSize = 11, Margin = new Thickness(0, 10, 0, 4) });
-                card.MouseAction = new ComboBox { Height = 30, FontSize = 11, Tag = card,
+                content.Children.Add(new TextBlock { Text = "鼠标功能", Foreground = Muted, FontSize = 12, Margin = new Thickness(0, 16, 0, 7) });
+                card.MouseAction = new ComboBox { Height = 34, Background = FieldOnTile, Tag = card,
                     ToolTip = "开启鼠标控制后生效；每次短按触发一次。修改映射会停止模拟并释放左键。" };
                 // Keep the order aligned with MouseButtonAction for stored mappings.
                 foreach (string label in new[] { "无动作", "左键单击", "右键单击", "左键锁定 / 释放",
@@ -490,24 +494,34 @@ namespace SpaceKatMonitor
             for (int i = 0; i < _buttonCards.Length; i++)
             {
                 ButtonCard card = _buttonCards[i];
-                card.TestPanel = new Border { Background = Brushes.White, BorderBrush = Line, BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(10), Padding = new Thickness(14, 10, 14, 10), Margin = new Thickness(5, 0, 5, 0) };
+                card.TestPanel = new Border { Background = TileFill, CornerRadius = new CornerRadius(16),
+                    Padding = new Thickness(16, 14, 16, 14), Margin = new Thickness(6, 0, 6, 0) };
                 StackPanel content = new StackPanel();
                 Grid heading = new Grid();
-                card.TestTitle = new TextBlock { FontSize = 12, FontWeight = FontWeights.SemiBold,
+                card.TestTitle = new TextBlock { FontSize = 12, Foreground = Muted,
                     Margin = new Thickness(0, 0, 14, 0), TextTrimming = TextTrimming.CharacterEllipsis };
                 heading.Children.Add(card.TestTitle);
-                card.TestDot = new Ellipse { Width = 8, Height = 8, Fill = QuietDot, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
-                heading.Children.Add(card.TestDot);
+                card.TestLogical = new TextBlock { FontSize = 11.5, Foreground = Muted, HorizontalAlignment = HorizontalAlignment.Right };
+                heading.Children.Add(card.TestLogical);
                 content.Children.Add(heading);
-                card.TestState = new TextBlock { Text = "等待数据", FontSize = 19, FontWeight = FontWeights.SemiBold, Foreground = Muted, Margin = new Thickness(0, 7, 0, 4) };
-                card.TestCount = new TextBlock { Text = "触发 0 次", FontSize = 11, Foreground = Muted };
-                card.TestLogical = new TextBlock { FontSize = 10, Foreground = Muted, Margin = new Thickness(0, 6, 0, 0) };
+                card.TestState = new TextBlock { Text = "等待数据", FontFamily = (FontFamily)_root.Resources["DisplayFont"], FontSize = 23,
+                    FontWeight = FontWeights.SemiBold, Foreground = Muted, Margin = new Thickness(0, 10, 0, 3) };
+                TextOptions.SetTextFormattingMode(card.TestState, TextFormattingMode.Ideal);
                 content.Children.Add(card.TestState);
-                content.Children.Add(card.TestCount);
-                content.Children.Add(card.TestLogical);
+                Grid footer = new Grid();
+                card.TestCount = new TextBlock { Text = "触发 0 次", FontSize = 11.5, Foreground = Muted };
+                footer.Children.Add(card.TestCount);
+                card.TestDot = new Ellipse { Width = 7, Height = 7, Fill = QuietDot, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
+                footer.Children.Add(card.TestDot);
+                content.Children.Add(footer);
                 card.TestPanel.Child = content;
-                host.Children.Add(card.TestPanel);
+                // The pressed glow lives in its own cached layer so the live tile never re-blurs it.
+                card.TestGlow = new Border { CornerRadius = new CornerRadius(16), Visibility = Visibility.Collapsed };
+                card.TestGlow.SetResourceReference(Border.BackgroundProperty, "AccentBrush");
+                card.TestShell = new Grid();
+                card.TestShell.Children.Add(new Border { CacheMode = new BitmapCache(), Margin = new Thickness(6, 0, 6, 0), Child = card.TestGlow });
+                card.TestShell.Children.Add(card.TestPanel);
+                host.Children.Add(card.TestShell);
             }
         }
 
@@ -533,7 +547,7 @@ namespace SpaceKatMonitor
                 System.Windows.Automation.AutomationProperties.SetName(_stickButtonCombos[slot], name + "的手柄动作");
             }
             OrderButtonPanels("ButtonsHost", slot => _buttonCards[slot].Panel);
-            OrderButtonPanels("TestButtonsHost", slot => _buttonCards[slot].TestPanel);
+            OrderButtonPanels("TestButtonsHost", slot => _buttonCards[slot].TestShell);
             OrderButtonPanels("NavigationButtonsHost", slot => _navigationButtonPanels[slot]);
             OrderButtonPanels("StickButtonsHost", slot => _stickButtonPanels[slot]);
             RefreshStickToggleChoices();
@@ -823,7 +837,7 @@ namespace SpaceKatMonitor
             _footerText.Text = enabled
                 ? "演示数据：轴值与按键均由程序模拟，不代表设备读数。"
                 : "显示设备实际发送的六轴数值；按键状态取决于固件上报内容。";
-            _footerText.Foreground = enabled ? Orange : ColorBrush("#82969C");
+            _footerText.Foreground = enabled ? Warn : Muted;
         }
 
         private void UpdateDemo(DateTime now)
@@ -879,15 +893,15 @@ namespace SpaceKatMonitor
         {
             _batteryText.Text = _battery.Text;
             int? batteryPercent = _battery.Percent;
-            Brush batteryBrush = !batteryPercent.HasValue ? Muted : batteryPercent.Value <= 20 ? Orange : Accent;
-            _batteryText.Foreground = batteryBrush;
-            _batteryFill.Fill = batteryBrush;
+            bool batteryLow = batteryPercent.HasValue && batteryPercent.Value <= 20;
+            _batteryText.Foreground = batteryLow ? Warn : Muted;
+            _batteryFill.Fill = !batteryPercent.HasValue ? Dim : batteryLow ? Warn : LiveDot;
             _batteryFill.Width = 13 * batteryPercent.GetValueOrDefault() / 100.0;
             _mouseToggle.Content = _mouseEnabled ? "停止鼠标控制" : "开启鼠标控制";
-            _mouseToggle.Background = _mouseEnabled ? ErrorBrush : Accent;
+            SetRunButton(_mouseToggle, _mouseEnabled);
             _mouseToggle.IsEnabled = !_demo && _selected != null;
             _mouseStatus.Text = _demo ? "演示模式仅展示数据，不发送鼠标动作。" : _mouseMessage;
-            _mouseStatus.Foreground = _mouseEnabled ? Accent : Muted;
+            _mouseStatus.Foreground = _mouseEnabled ? Live : Muted;
             bool pendingRelease = _mouseOutput != null && _mouseOutput.HasPendingRelease;
             _globalStop.IsEnabled = _mouseEnabled || pendingRelease || _joystick.Enabled || NavigationEnabled ||
                 _navigationStartupPending || NavigationReleasePending || _gamepadOutput.HasPendingStop;
@@ -898,8 +912,10 @@ namespace SpaceKatMonitor
                 : NavigationEnabled ? "3D 导航已开启"
                 : _navigationStartupPending ? "3D 导航等待设备"
                 : _mouseEnabled ? "鼠标控制已开启" : "所有模拟已关闭";
-            _globalMouseStatus.Foreground = _gamepadOutput.HasPendingStop || NavigationReleasePending || _mouseButtons.IsLeftHeld || (pendingRelease && !_mouseEnabled)
-                ? ColorBrush("#875212") : _mouseEnabled || _joystick.Enabled || NavigationEnabled ? ColorBrush("#08706A") : Muted;
+            bool outputPending = _gamepadOutput.HasPendingStop || NavigationReleasePending || _mouseButtons.IsLeftHeld || (pendingRelease && !_mouseEnabled);
+            bool outputActive = _mouseEnabled || _joystick.Enabled || NavigationEnabled;
+            _globalMouseStatus.Foreground = outputPending ? Warn : outputActive ? Live : Ink;
+            _globalStatusDot.Fill = outputPending ? Warn : outputActive ? LiveDot : QuietDot;
             RenderJoystick();
             if (_currentPage == "navigation") RenderAppNavigation();
             RenderMouseWheel();
@@ -910,16 +926,14 @@ namespace SpaceKatMonitor
                 : _mouseButtons.IsLeftHeld ? "左键已锁定 · 再按同一锁定键松开，也可点“释放左键”"
                 : _mouseEnabled ? "左键未锁定 · 四个按键按下方“鼠标功能”设置执行"
                 : "左键未锁定 · 开启鼠标控制后，四键映射生效";
-            _mouseButtonStatus.Foreground = _mouseButtons.IsLeftHeld || pendingRelease ? Orange : Muted;
+            _mouseButtonStatus.Foreground = _mouseButtons.IsLeftHeld || pendingRelease ? Warn : Muted;
             for (int i = 0; i < _axisCards.Length; i++)
             {
                 AxisCard card = _axisCards[i];
                 if (card == null) continue;
-                card.Value.Text = _axesKnown ? _axes[i].ToString(CultureInfo.InvariantCulture) : "—";
+                card.Value.Text = _axesKnown ? FormatAxis(_axes[i]) : "—";
                 card.Value.Foreground = _axesKnown ? Ink : QuietDot;
-                double half = Math.Max(0, card.Track.ActualWidth / 2);
-                card.Negative.Width = _axesKnown && _axes[i] < 0 ? Math.Min(1, -_axes[i] / 512.0) * half : 0;
-                card.Positive.Width = _axesKnown && _axes[i] > 0 ? Math.Min(1, _axes[i] / 511.0) * half : 0;
+                card.Gauge.SetValue(_axes[i], _axesKnown);
             }
             foreach (ButtonCard card in _buttonCards)
             {
@@ -930,22 +944,28 @@ namespace SpaceKatMonitor
                 bool supported = declared || (RawButtonMode() && observed);
                 bool pressed = supported && _buttonsKnown && card.LogicalBit >= 0 && (_buttons & (1u << card.LogicalBit)) != 0;
                 bool highlighted = pressed || now < card.FlashUntil;
-                card.Panel.Background = highlighted ? HighlightBackground : Brushes.White;
-                card.Panel.BorderBrush = highlighted ? HighlightBorder : Line;
+                card.Panel.Background = highlighted ? HighlightBackground : TileFill;
+                card.Panel.BorderBrush = highlighted ? HighlightBorder : Brushes.Transparent;
                 card.Dot.Fill = highlighted ? Accent : QuietDot;
                 card.State.Text = !supported ? (RawButtonMode() ? "未观察到" : "未声明") : !_buttonsKnown ? "等待数据" : pressed ? "按下" : highlighted ? "刚触发" : "释放";
-                card.State.Foreground = highlighted ? Accent : _buttonsKnown && supported ? Ink : Muted;
+                Brush stateInk = _buttonsKnown && supported ? Ink : Muted;
+                card.State.Foreground = highlighted ? AccentText : stateInk;
                 card.Count.Text = "触发 " + card.PressCount.ToString(CultureInfo.InvariantCulture) + " 次";
                 card.State.ToolTip = declared ? "固件报告描述符声明的逻辑按键" : observed
                     ? "描述符未声明此位；当前依据原始按键报文观察。可通过学习核对物理按键。"
                     : "尚未观察到此原始位。点击学习此键，再短按并释放对应物理键。";
                 if (card.TestPanel != null)
                 {
-                    card.TestPanel.Background = card.Panel.Background;
-                    card.TestPanel.BorderBrush = card.Panel.BorderBrush;
-                    card.TestDot.Fill = card.Dot.Fill;
+                    // The test tile lights up like a pressed key.
+                    card.TestPanel.Background = highlighted ? AccentFill : TileFill;
+                    card.TestGlow.Effect = _accentGlow;
+                    card.TestGlow.Visibility = highlighted ? Visibility.Visible : Visibility.Collapsed;
+                    card.TestTitle.Foreground = highlighted ? _onAccentSoft : Muted;
+                    card.TestLogical.Foreground = highlighted ? _onAccentSoft : Muted;
+                    card.TestCount.Foreground = highlighted ? _onAccentSoft : Muted;
+                    card.TestDot.Fill = highlighted ? _onAccent : QuietDot;
                     card.TestState.Text = card.State.Text;
-                    card.TestState.Foreground = card.State.Foreground;
+                    card.TestState.Foreground = highlighted ? _onAccent : stateInk;
                     card.TestState.ToolTip = card.State.ToolTip;
                     card.TestCount.Text = card.Count.Text;
                     card.TestLogical.Text = "逻辑键 " + (card.LogicalBit + 1).ToString(CultureInfo.InvariantCulture);
@@ -953,19 +973,19 @@ namespace SpaceKatMonitor
             }
 
             if (_demo)
-                SetStatus("演示中 · 模拟信号", Orange);
+                SetStatus("演示中 · 模拟信号", Warn, Warn);
             else if (!String.IsNullOrEmpty(_error))
-                SetStatus(_error, ErrorBrush);
+                SetStatus(_error, ErrorBrush, ErrorBrush);
             else if (_selected == null)
-                SetStatus(String.IsNullOrEmpty(_preferredPath) ? "等待连接 · 请插入 USB 或配对蓝牙" : "设备已断开 · 等待重新连接", Muted);
+                SetStatus(String.IsNullOrEmpty(_preferredPath) ? "等待连接 · 请插入 USB 或配对蓝牙" : "设备已断开 · 等待重新连接", Muted, Dim);
             else if (_packetCount == 0)
-                SetStatus("已连接" + ConnectionLabel() + " · 等待设备数据，请移动操纵帽或按键", Accent);
+                SetStatus("已连接" + ConnectionLabel() + " · 等待设备数据，请移动操纵帽或按键", Live, LiveDot);
             else if (_recognizedCount == 0)
-                SetStatus("已连接 · 收到数据，尚未识别六轴或按键报告", Orange);
+                SetStatus("已连接 · 收到数据，尚未识别六轴或按键报告", Warn, Warn);
             else if ((now - _lastReceived).TotalSeconds >= 2)
-                SetStatus("已连接 · 暂无新数据，显示最近读数", Muted);
+                SetStatus("已连接 · 暂无新数据，显示最近读数", Muted, Dim);
             else
-                SetStatus("实时接收" + ConnectionLabel() + " · " + (_lastReportKind ?? "设备数据"), Accent);
+                SetStatus("实时接收" + ConnectionLabel() + " · " + (_lastReportKind ?? "设备数据"), Live, LiveDot);
             _rateText.Text = _packetRate.ToString("0", CultureInfo.InvariantCulture) + " Hz  ·  " + _packetCount.ToString("N0", CultureInfo.InvariantCulture) + " 帧";
             _rawReportText.Text = _lastRaw ?? "等待设备发送数据…";
             _buttonMaskText.Text = _buttonsKnown
@@ -981,26 +1001,26 @@ namespace SpaceKatMonitor
                     : !String.IsNullOrEmpty(_learningFeedback) ? _learningFeedback
                     : supportedCount < 4 ? "描述符声明 " + supportedCount + " 个逻辑键；兼容读取保留原始位，请逐键学习实际对应关系。"
                     : "逐个点击“学习此键”，再短按并释放对应物理键；短脉冲会高亮并计数。";
-                _buttonHelpText.Foreground = _learningCard != null || supportedCount < 4 ? Orange : Muted;
+                _buttonHelpText.Foreground = _learningCard != null || supportedCount < 4 ? Warn : Muted;
             }
             else
             {
                 _buttonHelpText.Text = "演示按键：依次模拟四键触发；短脉冲也会高亮并计数。";
-                _buttonHelpText.Foreground = Orange;
+                _buttonHelpText.Foreground = Warn;
             }
             _mappingHelpText.Text = _learningCard != null || !String.IsNullOrEmpty(_learningFeedback)
                 ? _buttonHelpText.Text : _demo ? "演示仅展示四键信号；退出演示后可开启鼠标控制。"
                 : "先选择四键的鼠标功能，再开启鼠标控制。需要核对物理位置时，点击“学习此键”并短按对应按键。";
-            _mappingHelpText.Foreground = _learningCard != null || !String.IsNullOrEmpty(_learningFeedback) || _demo ? Orange : Muted;
+            _mappingHelpText.Foreground = _learningCard != null || !String.IsNullOrEmpty(_learningFeedback) || _demo ? Warn : Muted;
             if (now >= _copyFeedbackUntil)
                 _copyButton.Content = "复制当前值";
         }
 
-        private void SetStatus(string text, Brush brush)
+        private void SetStatus(string text, Brush brush, Brush dot)
         {
             _statusText.Text = text;
             _statusText.Foreground = brush;
-            _statusDot.Fill = brush;
+            _statusDot.Fill = dot;
         }
 
         private string ConnectionLabel()

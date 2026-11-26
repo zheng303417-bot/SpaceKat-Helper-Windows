@@ -59,27 +59,28 @@ namespace SpaceKatMonitor
             {
                 int slot = _buttonLayoutOrder[position];
                 int rowPosition = position;
-                Grid row = new Grid { Margin = new Thickness(0, 0, 0, 6) };
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
+                Grid row = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(78) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MaxWidth = 300 });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                TextBlock label = new TextBlock { Text = "实体按键 " + (slot + 1), VerticalAlignment = VerticalAlignment.Center };
+                TextBlock label = new TextBlock { Text = "实体按键 " + (slot + 1), FontSize = 12.5, Foreground = Muted, VerticalAlignment = VerticalAlignment.Center };
                 row.Children.Add(label);
                 TextBox name = new TextBox { Text = _buttonLayoutNames[slot], MaxLength = ButtonLayout.MaxNameLength,
-                    Height = 32, VerticalContentAlignment = VerticalAlignment.Center, Padding = new Thickness(7, 0, 7, 0),
-                    ToolTip = "留空使用默认名称", Margin = new Thickness(0, 0, 8, 0) };
+                    Height = 34, VerticalContentAlignment = VerticalAlignment.Center,
+                    ToolTip = "留空使用默认名称", Margin = new Thickness(0, 0, 10, 0) };
                 AutomationProperties.SetName(name, "实体按键 " + (slot + 1) + " 名称");
                 name.TextChanged += delegate { _buttonLayoutNames[slot] = name.Text; UpdateButtonLayoutStatus(); };
                 Grid.SetColumn(name, 1);
                 row.Children.Add(name);
-                Button up = new Button { Content = "上移", Height = 32, Padding = new Thickness(9, 0, 9, 0),
+                Button up = new Button { Content = "上移", Style = (Style)_root.Resources["MiniButton"], Height = 34,
                     Margin = new Thickness(0, 0, 6, 0), IsEnabled = position > 0 };
                 AutomationProperties.SetName(up, "实体按键 " + (slot + 1) + " 上移");
                 up.Click += delegate { MoveButtonLayoutRow(rowPosition, -1); };
                 Grid.SetColumn(up, 2);
                 row.Children.Add(up);
-                Button down = new Button { Content = "下移", Height = 32, Padding = new Thickness(9, 0, 9, 0),
+                Button down = new Button { Content = "下移", Style = (Style)_root.Resources["MiniButton"], Height = 34,
                     IsEnabled = position < ButtonLayout.Count - 1 };
                 AutomationProperties.SetName(down, "实体按键 " + (slot + 1) + " 下移");
                 down.Click += delegate { MoveButtonLayoutRow(rowPosition, 1); };

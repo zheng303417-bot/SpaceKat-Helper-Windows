@@ -24,13 +24,22 @@ namespace SpaceKatMonitor
             public Wall(V3 c, V3 u, V3 v, string name, string color) { Center = c; U = u; V = v; Name = name; Color = color; }
         }
         private static readonly Wall[] Walls = {
-            new Wall(new V3(0,0,3),new V3(1,0,0),new V3(0,1,0),"前  /  FRONT","#E1F1EB"),
-            new Wall(new V3(0,0,-3),new V3(-1,0,0),new V3(0,1,0),"后  /  BACK","#E9E9F2"),
-            new Wall(new V3(3,0,0),new V3(0,0,-1),new V3(0,1,0),"右  /  RIGHT","#E3EFF8"),
-            new Wall(new V3(-3,0,0),new V3(0,0,1),new V3(0,1,0),"左  /  LEFT","#F6EADC"),
-            new Wall(new V3(0,3,0),new V3(1,0,0),new V3(0,0,-1),"上  /  TOP","#EBF4F7"),
-            new Wall(new V3(0,-3,0),new V3(1,0,0),new V3(0,0,1),"下  /  BOTTOM","#DFE9E8")
+            new Wall(new V3(0,0,3),new V3(1,0,0),new V3(0,1,0),"前","#F5EBE2"),
+            new Wall(new V3(0,0,-3),new V3(-1,0,0),new V3(0,1,0),"后","#ECE9E4"),
+            new Wall(new V3(3,0,0),new V3(0,0,-1),new V3(0,1,0),"右","#E3E9EF"),
+            new Wall(new V3(-3,0,0),new V3(0,0,1),new V3(0,1,0),"左","#EFE8DB"),
+            new Wall(new V3(0,3,0),new V3(1,0,0),new V3(0,0,-1),"上","#F7F5F1"),
+            new Wall(new V3(0,-3,0),new V3(1,0,0),new V3(0,0,1),"下","#E3DDD3")
         };
+        private static readonly Pen WallEdge = FrozenPen("#CFC7BB", 1.3);
+        private static readonly Pen WallGrid = FrozenPen("#DBD4C9", 0.7);
+        private static readonly Brush LabelFill = B("#E6FFFFFF");
+        private static readonly Brush LabelInk = B("#5F594F");
+        private static readonly Brush HudInk = B("#6E685F");
+        private static readonly Typeface LabelFace = new Typeface(new FontFamily("Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"),
+            FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
+        private static readonly Typeface HudFace = new Typeface(new FontFamily("Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"),
+            FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
         private const double Near = 0.08;
         private double yaw, pitch;
         private double fieldOfView = RightStickModel.DefaultFieldOfViewDegrees;
@@ -60,7 +69,6 @@ namespace SpaceKatMonitor
             base.OnRender(dc);
             double width = ActualWidth, height = ActualHeight;
             if (width < 10 || height < 10) return;
-            dc.DrawRectangle(B("#F1F7F7"), null, new Rect(0, 0, width, height));
             dc.PushClip(new RectangleGeometry(new Rect(0, 0, width, height)));
             double y = yaw * Math.PI / 180, p = pitch * Math.PI / 180;
             right = new V3(Math.Cos(y), 0, -Math.Sin(y));
@@ -81,11 +89,11 @@ namespace SpaceKatMonitor
                 if (clipped.Count < 3) continue;
                 Point[] points = new Point[clipped.Count];
                 for (int i = 0; i < points.Length; i++) points[i] = Project(clipped[i]);
-                dc.DrawGeometry(B(wall.Color), new Pen(B("#B1C7C8"), 1.5), Polygon(points));
+                dc.DrawGeometry(B(wall.Color), WallEdge, Polygon(points));
             }
             foreach (Wall wall in Walls)
             {
-                Pen grid = new Pen(B("#C6D8D7"), 0.7);
+                Pen grid = WallGrid;
                 for (int i = -2; i <= 2; i++)
                 {
                     DrawWorldLine(dc, wall.Center + wall.U * i - wall.V * 3, wall.Center + wall.U * i + wall.V * 3, grid);
@@ -96,26 +104,28 @@ namespace SpaceKatMonitor
                 {
                     Point point = Project(center);
                     // Never let a nearly edge-on wall create a giant label.
-                    if (point.X > 80 && point.X < width - 80 && point.Y > 70 && point.Y < height - 15)
+                    if (point.X > 40 && point.X < width - 40 && point.Y > 50 && point.Y < height - 15)
                     {
-                        double labelWidth = 152;
-                        dc.DrawRoundedRectangle(B("#F7FBFA"), null, new Rect(point.X - labelWidth / 2, point.Y - 43, labelWidth, 30), 6, 6);
-                        Text(dc, wall.Name, new Point(point.X - 57, point.Y - 38), 14, B("#547B7A"));
+                        FormattedText name = Text(wall.Name, 14, LabelInk, LabelFace);
+                        double side = Math.Max(name.Width + 24, 40);
+                        dc.DrawRoundedRectangle(LabelFill, null, new Rect(point.X - side / 2, point.Y - 34, side, 28), 14, 14);
+                        dc.DrawText(name, new Point(point.X - name.Width / 2, point.Y - 20 - name.Height / 2));
                     }
                 }
             }
             dc.Pop();
 
             // Reticle stays fixed: the camera never translates or rolls.
-            Pen outline = new Pen(B("#FFFFFF"), 3), ink = new Pen(B("#008F87"), 1.2);
-            Point a = new Point(screenCenter.X - 9, screenCenter.Y), b = new Point(screenCenter.X + 9, screenCenter.Y);
-            Point c = new Point(screenCenter.X, screenCenter.Y - 9), d = new Point(screenCenter.X, screenCenter.Y + 9);
+            Brush accent = TryFindResource("AccentBrush") as Brush ?? B("#F2661B");
+            Pen outline = new Pen(Brushes.White, 3.4) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+            Pen ink = new Pen(accent, 1.6) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round };
+            Point a = new Point(screenCenter.X - 10, screenCenter.Y), b = new Point(screenCenter.X + 10, screenCenter.Y);
+            Point c = new Point(screenCenter.X, screenCenter.Y - 10), d = new Point(screenCenter.X, screenCenter.Y + 10);
             dc.DrawLine(outline, a, b); dc.DrawLine(outline, c, d);
             dc.DrawLine(ink, a, b); dc.DrawLine(ink, c, d);
-            dc.DrawRoundedRectangle(B("#F8FCFB"), null, new Rect(10, 10, 168, 27), 6, 6);
-            Text(dc, hasData ? "固定中心 · 转向与变焦" : "固定中心 · 等待摇杆输入", new Point(19, 16), 10, B("#547B7A"));
-            dc.DrawRoundedRectangle(B("#F8FCFB"), null, new Rect(10, height - 31, 159, 22), 5, 5);
-            Text(dc, "位置 (0, 0, 0)  ·  Roll 0°", new Point(19, height - 27), 10, B("#718C91"));
+            FormattedText hud = Text(hasData ? "固定中心 · 转向与变焦" : "固定中心 · 等待摇杆输入", 11.5, HudInk, HudFace);
+            dc.DrawRoundedRectangle(LabelFill, null, new Rect(12, 12, hud.Width + 24, 26), 13, 13);
+            dc.DrawText(hud, new Point(24, 25 - hud.Height / 2));
             dc.Pop();
         }
 
@@ -159,11 +169,12 @@ namespace SpaceKatMonitor
             }
             geometry.Freeze(); return geometry;
         }
-        private void Text(DrawingContext dc, string text, Point at, double size, Brush color)
+        private FormattedText Text(string text, double size, Brush color, Typeface face)
         {
-            dc.DrawText(new FormattedText(text, CultureInfo.GetCultureInfo("zh-CN"), FlowDirection.LeftToRight,
-                new Typeface("Microsoft YaHei UI"), size, color, VisualTreeHelper.GetDpi(this).PixelsPerDip), at);
+            return new FormattedText(text, CultureInfo.GetCultureInfo("zh-CN"), FlowDirection.LeftToRight,
+                face, size, color, VisualTreeHelper.GetDpi(this).PixelsPerDip);
         }
+        private static Pen FrozenPen(string color, double thickness) { Pen pen = new Pen(B(color), thickness); pen.Freeze(); return pen; }
         private static bool Finite(double value) { return !Double.IsNaN(value) && !Double.IsInfinity(value); }
         private static Brush B(string color) { var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color)); brush.Freeze(); return brush; }
     }
